@@ -1712,6 +1712,30 @@ render();
 })();
 
 
+/* ===== TAP KEY: Challenge me gives hints only after a miss ===== */
+(function(){
+tap.miss=0;
+tapNewTarget=function(){
+  const pool=LEVELS[2];let t;do{t=pool[Math.floor(Math.random()*pool.length)]}while(t===tap.target&&pool.length>1);
+  tap.target=t;tap.miss=0;tap.text='';tapRender();
+  $('#tapFb').innerHTML='Send the letter: <b style="font-size:1.6rem;font-family:Georgia,serif">'+tap.target+'</b> <span style="color:var(--muted)">(no hint yet. Tap it from memory.)</span>';
+};
+tapCommit=function(){
+  const ch=REV[tap.sym]||'?';tap.text+=ch;const code=tap.sym;tap.sym='';tapRender();
+  if(tap.target){
+    if(ch===tap.target){$('#tapFb').innerHTML='<span style="color:var(--ok)">&#10004; Yes! '+ch+' = '+sym(code)+' Next one&hellip;</span>';setTimeout(tapNewTarget,1200)}
+    else{
+      tap.miss++;
+      const hint=syl(MORSE[tap.target]);
+      $('#tapFb').innerHTML='<span style="color:var(--bad)">You sent '+ch+'. The target is <b>'+tap.target+'</b>.</span> '+
+        (tap.miss===1?'<span style="color:var(--muted)">Hint: it sounds like <b>'+hint+'</b>. Try again.</span>':'<span style="color:var(--muted)">It sounds like <b>'+hint+'</b> = '+sym(MORSE[tap.target])+' Try again.</span>');
+    }
+  }
+  tap.t2=setTimeout(()=>{if(!tap.target){tap.text+=' ';tapRender()}},tapUnit()*4);
+};
+})();
+
+
 /* ===== DAILY (home practice app) ===== */
 (function(){
 const E=vnEsc,CFG=window.APP_CONFIG||{};
