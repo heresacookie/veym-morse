@@ -1,0 +1,31 @@
+{
+  "name": "Lê Bảo Tịnh VEYM Morse Code",
+  "short_name": "LBT Morse",
+  "description": "Daily Morse code practice for Thiếu Nhi Thánh Thể Lê Bảo Tịnh, rooted in the Eucharist.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf6ea",
+  "theme_color": "#4a0f18",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
