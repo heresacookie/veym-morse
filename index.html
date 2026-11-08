@@ -1191,10 +1191,11 @@ mNew=function(){
   if(!mOrder.length||mOrder.some(i=>!pool.includes(i))) mOrder=shuffle(pool);
   mCur=PHRASES[mOrder.pop()];
   $('#mBox').innerHTML=mCur[0].split(' ').map(w=>[...w].map(c=>'<span style="display:inline-block;margin:6px 10px;color:var(--burg-d)">'+sym(MORSE[c])+'</span>').join('')).join('<br>');
-  $('#mHint').textContent='Hint: '+mCur[1];$('#mAns').value='';$('#mFb').textContent='';
+  $('#mHint').textContent='';$('#mAns').value='';$('#mFb').textContent='';
   if($('#mCount'))$('#mCount').textContent=pool.length+' messages in this level';
 };
 $('#mNext').onclick=mNew;
+if(!$('#mHintBtn')&&$('#mReveal')){const hb=document.createElement('button');hb.className='btn ghost';hb.id='mHintBtn';hb.textContent='Hint';hb.onclick=()=>{if(mCur)$('#mHint').textContent='Hint: '+mCur[1]};$('#mReveal').parentNode.insertBefore(hb,$('#mReveal'))}
 if($('#mLvl'))$('#mLvl').onchange=()=>{mOrder=[];mNew()};
 mOrder=[];mNew();
 
@@ -1712,13 +1713,17 @@ render();
 })();
 
 
-/* ===== TAP KEY: Challenge me gives hints only after a miss ===== */
+/* ===== TAP KEY: Challenge me has no hint unless the Hint button is pressed ===== */
 (function(){
-tap.miss=0;
+tap.miss=0;tap.hints=0;
+if(!$('#tapHint')){const hb=document.createElement('button');hb.className='btn ghost';hb.id='tapHint';hb.textContent='Hint';$('#tapChallenge').parentNode.insertBefore(hb,$('#tapChallenge').nextSibling);hb.onclick=()=>{
+  if(!tap.target){$('#tapFb').textContent='Press Challenge me first, then use Hint if you need it.';return}
+  tap.hints++;const h=syl(MORSE[tap.target]);
+  $('#tapFb').innerHTML='Send the letter: <b style="font-size:1.6rem;font-family:Georgia,serif">'+tap.target+'</b> <span style="color:var(--muted)">Hint: it sounds like <b>'+h+'</b>'+(tap.hints>1?' = '+sym(MORSE[tap.target]):'')+'</span>'}}
 tapNewTarget=function(){
   const pool=LEVELS[2];let t;do{t=pool[Math.floor(Math.random()*pool.length)]}while(t===tap.target&&pool.length>1);
-  tap.target=t;tap.miss=0;tap.text='';tapRender();
-  $('#tapFb').innerHTML='Send the letter: <b style="font-size:1.6rem;font-family:Georgia,serif">'+tap.target+'</b> <span style="color:var(--muted)">(no hint yet. Tap it from memory.)</span>';
+  tap.target=t;tap.miss=0;tap.hints=0;tap.text='';tapRender();
+  $('#tapFb').innerHTML='Send the letter: <b style="font-size:1.6rem;font-family:Georgia,serif">'+tap.target+'</b> <span style="color:var(--muted)">(Tap it from memory. Press Hint if you need help.)</span>';
 };
 tapCommit=function(){
   const ch=REV[tap.sym]||'?';tap.text+=ch;const code=tap.sym;tap.sym='';tapRender();
@@ -1726,9 +1731,7 @@ tapCommit=function(){
     if(ch===tap.target){$('#tapFb').innerHTML='<span style="color:var(--ok)">&#10004; Yes! '+ch+' = '+sym(code)+' Next one&hellip;</span>';setTimeout(tapNewTarget,1200)}
     else{
       tap.miss++;
-      const hint=syl(MORSE[tap.target]);
-      $('#tapFb').innerHTML='<span style="color:var(--bad)">You sent '+ch+'. The target is <b>'+tap.target+'</b>.</span> '+
-        (tap.miss===1?'<span style="color:var(--muted)">Hint: it sounds like <b>'+hint+'</b>. Try again.</span>':'<span style="color:var(--muted)">It sounds like <b>'+hint+'</b> = '+sym(MORSE[tap.target])+' Try again.</span>');
+      $('#tapFb').innerHTML='<span style="color:var(--bad)">You sent '+ch+'. The target is <b>'+tap.target+'</b>.</span> <span style="color:var(--muted)">Try again, or press Hint.</span>';
     }
   }
   tap.t2=setTimeout(()=>{if(!tap.target){tap.text+=' ';tapRender()}},tapUnit()*4);
