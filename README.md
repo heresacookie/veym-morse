@@ -16,7 +16,7 @@ Open `config.js` on GitHub, click the pencil, type your chapter name, motto, and
 
 ## Update it later
 
-When you replace `index.html`, also open `sw.js` and change `veym-morse-v5` to `veym-morse-v6` (then v3, and so on). That tells phones to download the new copy.
+When you replace `index.html`, also open `sw.js` and change `veym-morse-v6` to `veym-morse-v7` (then v3, and so on). That tells phones to download the new copy.
 
 ## What kids do
 
