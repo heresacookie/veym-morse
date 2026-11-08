@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4a0f18">
+<title>LBT Morse</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LBT Morse">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --cream:#fbf6ea; --paper:#fffdf7; --ink:#2b1d1a; --muted:#6b5a54;
+  --burg:#7a1f2b; --burg-d:#4a0f18; --gold:#c9972b; --gold-l:#f3e2b3;
+  --line:#e6d9bd; --ok:#2e7d32; --bad:#b3261e; --blue:#2a5d84;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:100%;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--cream);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;line-height:1.2;margin:0 0 .5em}
+h2{font-size:1.6rem;color:var(--burg)}
+h3{font-size:1.2rem;color:var(--burg-d)}
+p{margin:.4em 0 .8em}
+button{font:inherit;cursor:pointer;touch-action:manipulation}
+header{background:linear-gradient(135deg,var(--burg-d),var(--burg));color:#fff;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top))}
+.hwrap{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+header h1{font-size:1.25rem;margin:0}
+header .sub{color:var(--gold-l);margin:0;font-size:.82rem}
+.controls{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:.85rem}
+.controls label{display:flex;gap:5px;align-items:center}
+.controls input[type=range]{width:90px}
+.hb{background:transparent;color:#fff;border:2px solid var(--gold-l);border-radius:8px;padding:2px 9px;font-weight:700}
+.lamp{display:inline-block;width:20px;height:20px;border-radius:50%;background:#5a2a2f;border:2px solid var(--gold-l);transition:background .03s,box-shadow .03s}
+.lamp.on{background:#ffe27a;box-shadow:0 0 16px 5px rgba(255,226,122,.9)}
+main{max-width:1100px;margin:0 auto;padding:16px 14px 20px}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:0 0 16px;box-shadow:0 1px 3px rgba(60,30,20,.06)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.btn{background:var(--burg);color:#fff;border:0;border-radius:12px;padding:12px 18px;font-weight:700;min-height:46px}
+.btn:active{background:var(--burg-d)}
+.btn.alt{background:var(--gold);color:#2b1d1a}
+.btn.ghost{background:transparent;color:var(--burg);border:2px solid var(--burg)}
+.btn.sm{padding:6px 12px;min-height:36px;font-size:.9rem;border-radius:10px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+.verse{border-left:5px solid var(--gold);background:var(--gold-l);padding:8px 12px;border-radius:0 10px 10px 0;font-family:Georgia,serif;font-style:italic;margin:.5em 0}
+.tag{display:inline-block;background:var(--gold-l);color:var(--burg-d);border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:800}
+.hidden{display:none !important}
+ul,ol{padding-left:1.2em;margin:.3em 0 .8em}li{margin:.25em 0}
+.note{background:#eef4f9;border:1px dashed var(--blue);border-radius:12px;padding:8px 12px;font-size:.92rem;color:#1d3f58;margin:.6em 0}
+.banner{background:#fff3cd;border:2px solid var(--gold);border-radius:14px;padding:10px 14px;margin:0 0 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:.45em 0}
+.chk input{margin-top:.25em;width:22px;height:22px;accent-color:var(--burg);flex:none}
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:2px solid var(--line);z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+nav .nwrap{max-width:1100px;margin:0 auto;display:flex}
+nav button{flex:1;background:none;border:0;padding:7px 2px 6px;color:var(--muted);font-size:.6rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:1px;border-top:4px solid transparent}
+nav button .ic{font-size:1.4rem;line-height:1.2}
+nav button[aria-selected=true]{color:var(--burg);border-top-color:var(--gold)}
+/* morse visuals */
+.sym{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:currentColor}
+.dash{display:inline-block;width:30px;height:11px;border-radius:6px;background:currentColor}
+.chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 10px;margin:3px;font-weight:700;color:var(--burg-d);cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation;transition:transform .05s,background .05s}
+.chip:active,.chip.pl{background:var(--gold);border-color:var(--gold);transform:scale(.96)}
+.chip .l{font-size:1.25rem;font-family:Georgia,serif;min-width:1ch}
+.chart{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px}
+.chart .chip{justify-content:space-between;margin:0;min-height:50px}
+.big{font-size:1.15rem}
+.hearbtn{background:var(--gold);color:#2b1d1a;border:0;border-radius:10px;padding:8px 12px;font-weight:700;min-height:40px}
+.hearbtn:active{background:#b3841f;color:#fff}
+/* tree */
+.treewrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px}
+#treeSvg{width:100%;height:auto;display:block;touch-action:manipulation}
+#treeSvg .edge{stroke:#cdbd98;stroke-width:3;fill:none}
+#treeSvg .edge.hl{stroke:var(--burg);stroke-width:5}
+#treeSvg .mk{fill:#cdbd98}#treeSvg .mk.hl{fill:var(--burg)}
+#treeSvg .node circle{fill:var(--gold-l);stroke:var(--gold);stroke-width:2.5;cursor:pointer}
+#treeSvg .node text{font-family:Georgia,serif;font-weight:700;fill:var(--burg-d);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#treeSvg .node.hl circle{fill:var(--burg);stroke:var(--burg-d)}
+#treeSvg .node.hl text{fill:#fff}
+#treeSvg .node.empty circle{fill:#f4efe2;stroke:#d7ccb0;stroke-dasharray:3 3}
+#treeSvg .node.root circle{fill:var(--burg-d);stroke:var(--gold)}
+#treeSvg .node.root text{fill:#fff}
+#treeSvg .lvl{font:600 12px system-ui;fill:#9a8a74;text-anchor:middle}
+.readout{display:flex;flex-wrap:wrap;align-items:center;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px 16px;margin:10px 0;min-height:70px;position:sticky;top:0;z-index:5;box-shadow:0 3px 8px rgba(60,30,20,.1)}
+.readout .letter{font:800 2.6rem Georgia,serif;color:var(--burg);min-width:52px;text-align:center}
+.walk{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+/* tools */
+textarea,input[type=text],select{font:inherit;font-size:16px;padding:10px 12px;border:2px solid var(--line);border-radius:10px;width:100%;background:#fff;color:var(--ink)}
+textarea{min-height:80px;resize:vertical}
+.out{font-family:ui-monospace,Consolas,monospace;font-size:1.2rem;letter-spacing:.08em;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;min-height:48px;word-break:break-word;margin:8px 0}
+.biglamp{width:90px;height:90px;border-radius:50%;background:#4a2a2e;border:4px solid var(--gold);margin:8px auto}
+.biglamp.on{background:#fff2a8;box-shadow:0 0 50px 20px rgba(255,226,122,.85)}
+#flashFull{position:fixed;inset:0;background:#000;z-index:100;display:none;color:#555;text-align:center;font-size:.95rem;padding-top:14px}
+#flashFull.show{display:block}#flashFull.on{background:#fffbe0;color:#bbb}
+/* faith */
+.faith h3{display:flex;gap:8px;align-items:center}
+.num{display:inline-flex;width:28px;height:28px;border-radius:50%;background:var(--burg);color:#fff;align-items:center;justify-content:center;font:700 .9rem system-ui;flex:none}
+/* practice */
+.subtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.subtabs button{background:#fff;border:2px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:700;color:var(--muted)}
+.subtabs button[aria-selected=true]{background:var(--burg);border-color:var(--burg);color:#fff}
+.sub{display:none}.sub.active{display:block}
+.qbox{text-align:center;padding:14px;border:2px dashed var(--line);border-radius:14px;background:#fff;min-height:100px;color:var(--burg-d)}
+.qbox .sym{transform:scale(1.6);margin:18px 0}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+.opts button{font:800 1.9rem Georgia,serif;background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px;color:var(--burg-d);min-height:64px}
+.opts button:active:not(:disabled){background:var(--gold-l)}
+.opts button.right{background:#d8f0d9;border-color:var(--ok)}
+.opts button.wrong{background:#f8d7d3;border-color:var(--bad)}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-weight:700;color:var(--burg)}
+.fb{min-height:28px;font-weight:700}
+.tap{width:100%;max-width:440px;height:150px;border-radius:22px;border:0;background:linear-gradient(#a52b3a,#6a1822);color:#fff;font:800 1.4rem system-ui;box-shadow:0 8px 0 #3d0c14;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+.tap.down{transform:translateY(6px);box-shadow:0 2px 0 #3d0c14;background:linear-gradient(#e0b13f,#c9972b);color:#2b1d1a}
+.tapout{font:700 1.8rem Georgia,serif;min-height:48px;letter-spacing:.1em;word-break:break-all}
+.bar{display:flex;align-items:center;gap:2px;height:22px;margin:4px 0}
+.bar span{display:inline-block;height:100%;border-radius:3px}
+.bar .on{background:var(--burg)}.bar .off{background:#eadfc5}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 14px 20px}
+body.zoom1{font-size:19px}body.zoom2{font-size:22px}body.zoom3{font-size:26px}
+@media (max-width:600px){h2{font-size:1.4rem}.opts button{font-size:1.7rem}}
+@media print{header .controls,nav,.btn,button:not(.chip),.banner{display:none !important}.panel{display:block !important;page-break-before:always}body{padding:0;background:#fff}}
+table{border-collapse:collapse;width:100%;font-size:.95rem}th,td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}th{background:var(--gold-l);color:var(--burg-d)}
+.opts button.txt{font:700 1.15rem system-ui;text-align:center}
+.vncode{font-family:ui-monospace,Consolas,monospace;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:6px;padding:0 6px}
+.wstages{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.wstage{border:2px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center;background:#fff;font-size:.85rem;color:var(--muted);transition:background .15s,border-color .15s}
+.wstage b{display:block;font-size:1.05rem;color:var(--burg-d)}
+.wstage.cur{border-color:var(--gold);background:var(--gold-l);box-shadow:0 0 0 3px rgba(201,151,43,.35);color:var(--ink)}
+.wstage.done{border-color:var(--ok);background:#e8f5e9}
+.wstatus{font:700 1.1rem Georgia,serif;color:var(--burg);min-height:3.4em;padding:6px 2px}
+@media (max-width:560px){.wstages{grid-template-columns:repeat(2,1fr)}}
+.sigrows{display:grid;gap:8px}
+.sigg{font-weight:800;color:var(--burg-d);background:#fff7e0;border-radius:8px;padding:4px 12px;margin-top:6px}
+.sigrow{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff}
+.sigrow .nm,.sigrow .pat,.sigrow .td{grid-column:1}
+.sigrow .en{color:var(--muted)}
+.sigrow .pat{color:var(--burg);padding:2px 0}
+.sigrow button{grid-column:2;grid-row:1/4;align-self:center;min-width:48px}
+.bar{height:auto;min-height:22px}
+.bar span{height:22px;flex:none}
+#sub-bank select,#sub-msg select{font:600 1rem system-ui;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--burg-d);max-width:100%}
+#bkBox{min-height:90px;font-size:1.15rem}
+#bkBox .sym{vertical-align:middle}
+#bkOpts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+#bkOpts button.txt{min-height:52px}
+/* fix: scaled symbols overlapped the text beside them; size them for real so layout makes room */
+.qbox .sym{transform:none;display:inline-flex;gap:7px;margin:12px 6px}
+.qbox .sym .dot{width:17px;height:17px}
+.qbox .sym .dash{width:48px;height:17px;border-radius:9px}
+#sub-tree select{font:600 1rem system-ui;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--burg-d);max-width:100%}
+.tcwrap{overflow-x:auto}
+#tcSvg{width:100%;min-width:720px;max-width:none;height:auto;display:block}
+#tcSvg .tce{stroke:#c9b8a8;stroke-width:3}
+#tcSvg .tce.on{stroke:var(--burg);stroke-width:6}
+#tcSvg .tcn circle{fill:#fff;stroke:#c9b8a8;stroke-width:3}
+#tcSvg .tcn.on circle{fill:var(--gold-l);stroke:var(--burg)}
+#tcSvg .tcn.cur circle{fill:var(--burg)}
+#tcSvg .tcn.cur .tcl{fill:#fff}
+#tcSvg .tcl{font:800 20px Georgia,serif;fill:var(--burg-d)}
+#tcSvg.hide .tcn:not(.cur) .tcl{opacity:0}
+#tcSvg .tclb{font:700 14px system-ui;fill:var(--muted)}
+.tcbtns{justify-content:center;gap:16px}
+.tcbtns .btn{min-width:150px;min-height:64px;font-size:1.3rem;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.tcbtns small{font-size:.75rem;font-weight:600;opacity:.85}
+.hs select{font:600 1rem system-ui;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--burg-d);max-width:100%}
+.hs input[type=text]{width:100%;box-sizing:border-box;font:700 1.2rem system-ui;padding:12px;border:2px solid var(--line);border-radius:12px;margin:8px 0;text-transform:uppercase}
+.hs h4{margin:1.1em 0 .3em;color:var(--burg-d)}
+.hs .stats{flex-wrap:wrap}
+.cgscore{display:flex;gap:10px;margin-bottom:10px}
+.cgscore span{flex:1;text-align:center;padding:8px;border:2px solid var(--line);border-radius:12px;background:#fff;font-size:1.1rem}
+.cgscore span.on{border-color:var(--gold);background:var(--gold-l)}
+.cgbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-weight:700;color:var(--burg-d);margin-bottom:6px}
+.cgtimer{font-size:1.4rem;color:var(--burg)}
+.cgword{font:800 1.9rem Georgia,serif;letter-spacing:.06em;min-height:80px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px 22px}
+.cgw{display:inline-block}.cgw.hid{font:600 1rem system-ui;color:var(--muted);letter-spacing:0}
+.cgl{display:inline-block;padding:0 2px;border-bottom:4px solid transparent;color:#9a8a80}
+.cgl.sent{color:var(--ok)}.cgl.next{color:var(--burg-d);border-bottom-color:var(--gold)}
+.cgshow{width:100%;font-size:1.1rem;color:var(--muted);letter-spacing:0;margin-bottom:4px}
+.cgpass{text-align:center;padding:18px 8px}
+.cglast{background:var(--gold-l);border-radius:10px;padding:8px;font-weight:600}
+.cghost{margin-top:14px;padding-top:10px;border-top:2px dashed var(--line);justify-content:center}
+#cgSvg{width:100%;min-width:720px;max-width:none;height:auto;display:block}
+#cgSvg .tce{stroke:#c9b8a8;stroke-width:3}#cgSvg .tce.on{stroke:var(--burg);stroke-width:6}
+#cgSvg .tcn circle{fill:#fff;stroke:#c9b8a8;stroke-width:3}#cgSvg .tcn.on circle{fill:var(--gold-l);stroke:var(--burg)}
+#cgSvg .tcn.cur circle{fill:var(--burg)}#cgSvg .tcn.cur .tcl{fill:#fff}
+#cgSvg .tcl{font:800 20px Georgia,serif;fill:var(--burg-d)}
+.brandwrap{display:flex;align-items:center;gap:12px}.brandlogo{width:54px;height:54px;flex:none;border-radius:50%;background:#fff;padding:2px;box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.35)}@media print{.brandlogo{box-shadow:none}}.chapname{color:var(--gold-l);font-weight:700;font-size:.9rem;margin-top:2px;letter-spacing:.02em}.dcard{text-align:center}
+.dstreak{display:flex;align-items:center;justify-content:center;gap:14px;font-weight:700;color:var(--burg-d)}
+.dnum{font:800 3.2rem Georgia,serif;color:var(--burg)}
+.ddots{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.dd{width:18px;height:18px;border-radius:50%;background:#eadfc8;display:inline-block}
+.dd.on{background:var(--burg)}.dd.td{outline:2px solid var(--gold);outline-offset:2px}
+.dstep{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.dstep input{width:26px;height:26px;margin-top:2px;flex:none}
+.dok{color:var(--ok);font-weight:700;margin:.8em 0 0}
+.dbad{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.bd{border:2px dashed var(--line);border-radius:12px;padding:10px;opacity:.65}
+.bd.on{border:2px solid var(--gold);background:var(--gold-l);opacity:1}
+#daily input[type=text]{font:600 1rem system-ui;padding:10px;border:2px solid var(--line);border-radius:10px}
+nav button[data-tab=today]{display:none}
+</style>
+<link rel="icon" href="data:image/png;base64,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">
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div>
+      <div class="brandwrap"><img class="brandlogo" alt="Lê Bảo Tịnh chapter logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAACMCAMAAACZHrEMAAABIFBMVEWWmaycpNTf1SJjrRzZ29wtLCvx5V9PUFBnbKmu7nP5+Pxumlyt15bpHicWMNhcLAq1w9nm6aaqziR2j5pn1G2WoFtkYql3jeiMqyltbXBaUSRrZpQuLXFbbdxqwSScbVuqqa6PjK6YlrKPeqkTJavDu9WadTgxTuhmYpDPUGDUMVUqLluvq8jHZJQxTpxy0Yg3Ri/PoV/RzuCysO/omCAAAP+CfaRRTHV/f/8FBDSYlMI8MYU2TUR0L3TeWiHUtKtHO4m/f7//AP/er+suJnBdWX6CfsE/NYoAfwBIPX5EPkZLP5tVAP+Df5r/f//QubnDu9X7+/oAAACV0zK++IWVtff67pDo6OzD+4j685Wr0imTyiy0t84FAgPHyNXW1+XRyPPqAAAAYHRSTlP6/v///v////r/C////////v///v//Cv//Bv+aC////wmiYOr/////Zf///1f//////04W/wGmbwIXj03/A///TAQBDkmO/xgCW///A3wCC0T+AP/////+//////7//v6s7cIjAAAVLElEQVR42rWcCV/buLbAJazEylLqxA0JCWkDIQWGlrbTmc5679w7c5e3v+cEEMTC/v7f4p1z5EV2nI2Zq1+bHevvs2ux2Xzf1jw6MS9Ofrr8+4hZbSpHo8u/Jd8eH/2696HZviTfE8dfRiPGZ7FSkQrspuKIsdHopx/wV98fffsvhDk6NiA+SxkiXoRJkTgzQPQX/wKYJsr/5HLEZlb/MXaN7yOP41vrq4iN/p3+5Ns/HOb4aD7/r7+MmMg7w46lDAImAYn7CONH9E2kDJTgo7/tIx62M8o/L6ea+lBaMHhi0LsWnAdMSy/QkikhJLEqT2oeR4l8vvthZxy2k9UCTiIUJZiOBchDcT+IoVMZA5TUWnIlFMoIJQLfxzIxn5iNQFs72fIOMIByNGJxopwIO5ReJCIWcFBVLCXIgEuJajIAgYbXXAf4IFkUJDh/AMwxoeSmEnCUhAfn7PMp2bBQZMX4qM1PUFtSC6HGnMdSgNDY6Id58/h3wvx6Mm9eklQUqoM69w1QIOhjEYvI0zqKIiFSXwJ/jyTwgbzixJwF+w4c63fBoFjkLBHIWGXnjYdXscc4Z0xrj5rWEIQ54x4xxaQlJqNZ5n3yhA74XBgQy4jhaZEX80QJiswYKLx4NeIp4SGgMXYmVRBbCh5tEQ7bGOWO0DgD4WuwDM6l6Vt50FtcFXkzogiAPOw+SoyNggEY+8n8+NvnwID1XzKjF85EhE8xBQ6mN4FksRm0BiTxLPMvbGg5R/vD/Gk+GSV6gRiLrwTGu0QDO7XYiIc0pBNnF+BWJ/vCoIpislseKz4mDSnGomCvhvAGBg6iYwZWJKYna2nYOpZLpoyKwGMgrilEEcH+zSMciIkqYH0ZR5A+flpHUwnz63FqLsZFSev7SiVrGpSFQYr7EkIP6utyjd2waje65OmhGDf5TgfPbyRTLfvagxgJAtdraFglywgJjGwUZWimgt/TBJ4ShO1YgIzgULNRZfhbhYEUMtIcT4VlZdLeGurU7+/rdXigp3q9o5lSJtlydIxoVJXHWZVcZgFP/ZHEsr8o6gelBsKRGg1QyFhrojnZDoM6gl+jLytOanqOtYAsHjvUHrHV6+lJeXRgNOsKGraSGi+51LMIY7/CE2Fx8CyYx8f7x6TdP9YPjJerQGaH49+t0LAVFgaWq9H4OVYCz7RcgAFzyWHqSUi2z4xdlmmKMJP5hJwnEJAawYg1e6b7oJqIg1oiGdS5HTfZccmnCjDNeRNVCkLxSEfPZgGYT2/ffkpYchgAiPJ6MZBH/9ZcB/MtGC8mWt6HghYSwEYWtQWm9/JlrwImINkoxiVlzaKiWNFgqD4bQ83PtrGwtHTZEyYAuwH3Nn8/Kxoxs5U0MT2AO2HtWmQRnUajAmZNENoAg7KJKVkJMpvvq2Cax01TykH+gBeCWRzthoOtCsbdG0ahhwKMRk3J4+NmBcxkPorIsLBcyDozHK9fNxoPDaeQ/JKn2gaYTiUMeDiOMThFjfjvVs5kRa+OPGnmFeCXwsjjVaNx+4DNholc13ipWxPVMG/WSgaTXaCkl/n3URkmURIO0MaCPLBN8jAct9AKMO5T7Qllo2q1KqMRw9pTzYapl2oKDVUxZGOoJ5T8nCmKZYI5w7LHMyHAgx7aTsZxuwLDaoYCniuMhrlP167rrocBI1YcRppoNuBRR0UYCHd0bBoxG4Npv85B1sK4tURPnXrePg2BxK099Tppdqof1AtNUA9KC6qbjubNAszR/DTCGQ5TbZA5IExJMgIsBc+b5TDQKR3X7q4HOnqC9ua+AyYMmfu+iFI/6JDsTQoP4lEqGgPzP/PfWD6u11Q0VEhGkKG4TwhDEMhUq4Gtv8zbcDgklKenl0N4W6MPzePbRFQHgmIf9gVJEEVzbMEczb9E5RBSAeOChTASipGMIpZaL+i8TPonhpfJi9pL+0OEecxhsBfpcZz6ikc2TGIxdvaohKmlzXVJMiAfsg4lhkMSw0sbKgEaZo1g0KARBuUPgZ7qm1Q0LLcYKyRtg6kRjMregQEfJJ7TGdoovfuqRjAUNil5Z6JBmO+LglFrYT4iA/R9bWASwbjoUPcHqed0ehnLsJP5U1pnWTAY+m441LgqFQ2jbI0xRvRpejDLSVWSIRjTP8C4maAYwqTnndHUOo/3GySDpx0LwWUURJcwtk9tBj9mCvNjJphKyRjBuLWhe319Ls/Pr69rH69tGDr3TmI4Qyg47x/Xw+B5C5qyDeRviZo+z89wFhUgothK1hCByzAOggDQ9fXh4QW2w0PgcUuSuX9MRON27jdKBk98bFIUjHgnBHM8P43N3CAM+PIitQLmtUv2cn54MeZ32DgfA86wAIOWUdsNJspGQYpMmKV+jZ9rpXJLrlCTg2KpnR/277LmAY47LMKkonEft8AEeW+UExj4NWop0B46tTWQrYAZDp3h9fkFv7MbH5/3eqk3JTDGanLJ4BcWGaSDZIIiSgvq2SWIhqGWBNZTUO0IC7XSZpxweH5xV26HcuB1DlLHxScTbIYpQO7U9C6XTKoIbfTEUEum3OWxpcRKmDAc3BzyFZj+YasHiTJNh/f1x1+M0aSlHqJkX8OLTDKJ72IhyiYAMpm/40opGBBIHdgjviqYZauCBUXjDArD/GHJncrzAJmXeDqIeH8MoUaDntgJaMnMlhUMqhqmcTP2Vln4xc3CcYQQUJ0LaiyJeomeoJ4RhWYnZZp+4ainE0YRLxAeztjaWqqE6VmC4dlLb3wTAgycUi1Kq9IyzNpJLRNjIcpN0ZtMXqIRXmEkXAGzaB3m8vjw6kP6cnweDgCG1dIi1E1z0/02GHTizLkZ5SVjvgUtVcJIy60/vHrlJe/GhygZkaSpHObNdhgIJ9InGYDRMDIZ1F465NykpptxCsNfAcyHD5lkwrDH0nIihan1tsOgAGKae4c6AmCUmU3XqmAylTDnWezlr6glYe9msRggDCRNN3JFYDx7WH/cAUbAqF7juB5g0GQE4zriARdbYHrVMHcXcuD0hJ9UWmCTBFN7s24QV5wlZkEUcR+w/pdgaFirguIsVQWMFWUKMIe+4/R6UGEQC5ycqXrf7gKDZYKSZsjCzhg51or9itZ2mA+vkgjcWAwgCA0xkw5xILMHDBhqsuirL9mZmb8bx0HBfgWM9h8edoLxLs7lzTmUNuc38uePVH2Z4cBOMAGFPQ6xP7pkUIqrKNb6H0rY9isGr3eF6UOlNR73oY0PITEMgQY9aXeYaEyFcDxiUFglC1SeV7AY5/WOaur3+Z1JEhzAJI4h0Hp3homzAgvXGBSnRT5tzYj1nN3VVEhT/PDmY43VSE1vdoNJu1USlyiUHPsSVJen7I6zCJ8Hc8cPr2EQs7sBJ4NpMyWHAwNcMo+tzCR6ULo8C4YKP0gJw91hvCKMigujN7SXrTDeOhgIgecs+IQD291goLKTUvZhmMSs2coMprWAVLMJhl9dXb15Aw9v31+9X6m2+ud+UH8LotkNBqJeLDQKpBKmF26BufvqRdbe35VpwGqieh1seDcYGttHiZpWB9nOZhg+5Rxprq7wgb+frujpmtXrvb1gxApMmgYGW2C+evH+/Ysr+PsZCAbelGHG5wAz3DFRIsws1liKpjDaE4lkmLNcbIV58dVXdC6/kKK8FaNh9U87GzDYDOdyzBMYxRXYszIwHWcAbQNMf0w6MnGKXr7Bxooww51dGw24z6PUtaGogqFCajOi3UbPXgfDxxaMeJHBWDQIM3BXYJRSSlW7tqCkQDCgLw2DhSzodQYLA1ORm/jFBcG8+AV/eWXB5DT9c7de/1SCMbM57uq0saZ1VFzeIpgAJcOCbMsFc7oDZ12iHCcw3zx2OvVvbJg3PIvBLq0dWDD16MnUgU8rMFzTMhHAQG4C+cw02nSWKEWv1+6tg0nU9IJGhjYM43kIXoXpmFmmigl15gUe+TIkShoceH3pFYdw4OFrYPqJZBDmzwRjtpnmse/wugomVZOgXwt7chXMFypyrGdwZpz/oy8LK0yoJWeDa18RzZ/BxVddu39Y+48qGNdM2WIyxG1SqS37YNZS+lRc4eRMRGTKhgnDDTBf8fcpzOx9Oehh2kbJDIeDEoyZmEzWN1Vax/iB1DSqhBr4/3iWC6xgjFnbuV2fDlBP33wDWrryOCunpp9p2e61M+hYBpzBCAz+uKXMqCr2A+XHZp2bJUNtbg+1KTs5zvpEeZUnyqm3MiXRwAY/tyWTwygBvhth2GFmGwDumkNZsQmjSQjciBnjIDyBGWyG4dPp+0/UpqUKgvP+YfvBLFStgQEFMByfCLMki1stNO0PAxSa6pQ0P5PPRzvLcPna2Vjp1Tu4xFRRA/sPtw3z83UwYC5RwJLUjKN+LqDqVTjWPgORCdEvzBX1IEFtkgzB4JRYqZjx+OEY/6ixCQZ9G84b1IU2LIMY0yTkAZyFeEcYvDi+7bQ77SLMQ1Eyd3fter3tFYtxb4xyIcGshwHBQIuiiHJk5IO9kq3ys2SyCEb9mB14lMOoTlkyt422DeO1221rHgtVdHHIHixBVru2YO7Hn10QjkATZvnmrs84Qw4JITZT0pnRQDJolQf+cPwCDOdFsfQvDmX7oVENc+CkMLgYA9U6o42WlLCTUdMUSI7mpzNjLZAOWBbzBk7vdZGkDGNbyh2ObMdtW5QlmMHHTE0IA48RSibZT202afyJNedf47YEs90xiYqq5bRaJQM2MH3eX23jCxht++0Vey9I5qOlJiSKFCWFzGfAZCY0KY3TnRAhRO7coNCSARs1VbYLn7UfVn5cghkOU8ngvmFG2UAwqYQ0+1YJJF0TjMc0jlLWEPe2fPzbdlUDjrrZE3CLRET1QBNdFgwE0Y/GZloCSSDqRUGH+dDx+Rjn9b7Q2sGEnDuS5ErZwFeoVZhbsxfBarfWngDSI3zQxlcNjAT3RZjhz8Phx5oTOriri1IP7qZVjAucrDqbHyVLPJjVaSCl/NSEe70VbyqTtXy/BzBgLaRD2W77rbbP4L3PEKZegAHRDIFosHScHnT4C2kJlw0UT7SULH5FySUWKjA7eHstZ+Gs2EzZgqD32zZr37TaJBXp+49MygfmM/Dx+m0Jxhl+dBYLGniELUEBGOcWTfo2G56YtaoNwxdjwpC1nbDr1DfD3Lp+ry0Bhj2QYny/xSRzfYmPbEUyC4fmE2hIBlEM6810HzitqUyyBVMcKPh9TZidHo0pXzuNh9VmS8btgEm7KCASjdtG4ciOf+N3fL9CTaERS4jPjmARZ2aeFeeJmum6tjFhLmiPeMx63YGBedjS3B5jPdb222gi8LYNCGQzrdRmHm2YQgMpCRCMDznSC4z5Gpgk1DBOvsTc9OeNLa3daMM/eglqgv+9doPe4//bIky3BDMIBy6n/feUCpq0ayXZfoCVMCbMGDTlOn9Qq9/najJtkDb82k2mG5TWZ9ZeiMS7dSBwf14bBpSLBfwPd2jdiobd4iqgWXJ/TGCWdoOjO23jNR7zmBFMsmXlmEQTS1MZt5Bl/xY2FstluvBXf7RXc0kyyy78qJH9vJdthYz+O9k6aGCa35oElQ7g9ifpZhx44gcrrdulD5fZH7TyudVUMOk2p8+m4Eu/3YNm2c26XmJXoXmLj90cBf6BZhBzaXh6+bgILGZS3AB23LRXbndSVCaB7jI94bCbnH4IT4suaOZgcXAQHizwdfZXaDKtfCVDNo+bpX1686+tdYy4tRNGTmE+ThWB0lniW2BamH/4zvppyxprZ4KxdzCe6q2KotMyfrHyVW4SS1QKPHZJHoTVXSySR8OSdxV9Wd3BmEa+fIBbgVFJQXZDYkreHZAMutg1vqLnZWiOkbDYG5lS6y3uep2/sxec/LDIsUFnBS9ZmjfIEi4NCH4YJr8ly/KtqaJcSYX9wEVFqd2MuFsgAQbzrptY8cLAhMlvQqQJW6pSSaXNyQWPilvb3clSDobsRQYGz2gxyctUJPibpW28CpT0ffW27aJHbYl9xpDLNpzKZ5lhmMduZbSzPWlld/3R/Ee+E02VFRkfMq+W5skIybKWolMH/LS417+41f+keaq30lTaczc3nYRlkT4VYGyWaAQdrr8Ignb22PP6K1a8xrG6uRUnAsmfrafQ1lE8LRjM6uUhvxWNGGQTbidBFItlaf4kU9oie+7ZcsGKarL5whk0YnsXgvIdC6WqcMj1UhBRGloWy/QZYp2yF9ffQXrecknRBGgKM/ybU3hYQEHdhGlNsShKphB3yZGOtl/59dcyjdcKN8XfZcGj8s8XRZiw5W1jqbomboVG+M6OLMtFJUyIYikon51VXRTHKi90/bp0ySSrzg0lK7IrimXhD8KWDrazVF9HiTRxaYWqAqds0Mtu9VdhUSxku8e7X2F6VIo3GKH81haUgsKsV06reCgBPn28z+WuSFO+ME+3nPUoi3XG47RKx9FrWdZeCPx53jxduR5Ot9bXFcuqN2GrjBKw05VYt/0SaUga72xVK7zVQeD5LWc7S9IGLeatrI6ezefN/S8ehz/5Op+lhZF4ROPimLVazrZCB2QyaLXICbS0WGbTdxtYNl7jf4yqitMBBe70jpKrglutjXUgaCdzIM6m2W4dVNHJc284MMmFwyWLGIfH7KJ56NAJy0hh6CAIbcURyd7VqbkaByz33XytuexwK4bmybz5Izk5g1NUikVTuug0NtfmMYZIVvPhE09kq7J46aEE2eJtC2ISS/N33TEDziTVFYs4V1Ncz5MR2E+U3JNCxLGIoMVxYQkdDEzpaXqngZh9aW4Ryy6378C7mnxNC84BTjXhLoUZ3g1DzmI2i/O7ZCTekl4fizscZmBodC8HxSHmzv/U/ANubALHaL5LF3/xhhzgWDO89FBLqQXFRrytiqY1+1Q6tCgQ/ScKJmbTd81NTrTf/WcmBgcDDS6G4CRlJJlmM3IxvLQQbJXTxeoqvV0Hm3IGqgPXI5TJLv3sdjOcJh4LbMcsU+lZBJ6lpaD70KDuOLziJKt8SzZaudLsFMu5SXP+x8EACR4TxaMTTyJ5SIV3UOJMa85RI3hhjmDT7KYQ7Ky5O8ped3OaYHprnoF80ns5xaQ52vEN0oGQqKezSOCtYPB+TqdEcjLZvYe9bi3VpEqx+e6UAVB2axPzQgXZmprgLCGZHzf3Of6eN91KeEBAP/6ImzG0wPBCDSQiNN6Q5vT0zJT9+5E8A4as+SS1o7OzH7+c4o3IpvBw+uX07OxzAnDy1+b+R/5/JHRrAP1oMeYAAAAASUVORK5CYII="><div><h1>&#10013; Morse Code &amp; the Eucharist</h1>
+      <p class="sub">Thiếu Nhi Thánh Thể &middot; daily Morse practice</p><div class="chapname">Lê Bảo Tịnh &middot; Riverdale, GA</div></div></div>
+    </div>
+    <div class="controls">
+      <span class="lamp" id="hLamp" title="Lights up when a sound plays"></span>
+      <label>Speed <input type="range" id="wpm" min="4" max="20" value="8"><b id="wpmv">8</b></label>
+      <label><input type="checkbox" id="mute"> Mute</label>
+      <label id="hapWrap" class="hidden"><input type="checkbox" id="hap"> Buzz</label>
+      <span><button class="hb" id="zm" title="Smaller text">A&minus;</button> <button class="hb" id="zp" title="Bigger text">A+</button></span>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="banner" id="soundBanner">
+  <span>&#128266; <b>Turn your volume up.</b> On iPhone, also switch off Silent mode. Tap any letter to test the sound!</span>
+  <button class="btn sm" id="bannerX">Got it</button>
+</div>
+
+<!-- ============ TODAY ============ -->
+<section class="panel active" id="today">
+  <h2>Today's Lesson: Dots, Dashes &amp; the Eucharist</h2>
+  <div class="card">
+    <p class="big">Welcome! Today we learn a language made of only <b>two signals</b>: a short one <span class="sym" style="color:var(--burg)"><i class="dot"></i></span> and a long one <span class="sym" style="color:var(--burg)"><i class="dash"></i></span>. Just like prayer, it is about <b>listening</b>.</p>
+    <div class="verse">"Speak, Lord, your servant is listening." (1 Samuel 3:9&ndash;10)</div>
+    <div class="row">
+      <button class="hearbtn" data-say="SPEAK LORD">&#128266; Hear: SPEAK LORD</button>
+      <button class="hearbtn" data-say="JESUS">&#128266; Hear: JESUS</button>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Follow along with your teacher</h3>
+      <ol>
+        <li><b>Mystery message:</b> what was just sent? Watch and listen.</li>
+        <li><b>Why Morse?</b> See the <button class="btn sm ghost" data-goto="why">Why</button> tab.</li>
+        <li><b>Learn the Tree:</b> <button class="btn sm ghost" data-goto="tree">Tree</button></li>
+        <li><b>Tips &amp; tricks:</b> <button class="btn sm ghost" data-goto="tricks">Tricks</button></li>
+        <li><b>Vietnamese Morse:</b> <button class="btn sm ghost" data-goto="viet">Việt</button></li>
+        <li><b>Whistle signals:</b> <button class="btn sm ghost" data-goto="whistle">Whistle</button></li>
+        <li><b>Practice:</b> <button class="btn sm ghost" data-goto="practice">Practice</button></li>
+        <li><b>Team challenge:</b> decode "Message from the Tabernacle".</li>
+        <li><b>Reflect and pray.</b></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>By the end I can&hellip; <span class="tag">tap to tick</span></h3>
+      <label class="chk"><input type="checkbox" data-save="g1"> Explain why we use Morse code in VEYM and name 3 faith connections</label>
+      <label class="chk"><input type="checkbox" data-save="g2"> Use the Morse tree to decode any letter</label>
+      <label class="chk"><input type="checkbox" data-save="g3"> Use 3 shortcuts to remember letters faster</label>
+      <label class="chk"><input type="checkbox" data-save="g4"> Send and receive a short message (a name or verse)</label>
+      <label class="chk"><input type="checkbox" data-save="g5"> Spell a Vietnamese word in Morse using the tone-letter codes</label>
+      <label class="chk"><input type="checkbox" data-save="g6"> Tell when a whistle message is starting and when it has finished</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Quick reference: timing</h3>
+    <p>Everything is measured in one "dot" unit. Tap a row to hear it:</p>
+    <div class="bar"><span class="on" style="width:20px"></span><b style="margin-left:8px">dot = 1</b></div>
+    <div class="bar"><span class="on" style="width:60px"></span><b style="margin-left:8px">dash = 3 (three dots long)</b></div>
+    <div class="bar"><span class="off" style="width:20px"></span><b style="margin-left:8px">gap inside a letter = 1</b></div>
+    <div class="bar"><span class="off" style="width:60px"></span><b style="margin-left:8px">gap between letters = 3</b></div>
+    <div class="bar"><span class="off" style="width:140px"></span><b style="margin-left:8px">gap between words = 7</b></div>
+    <div class="row"><button class="hearbtn" data-say="SOS">&#128266; Hear SOS</button> <button class="hearbtn" data-say="E T">&#128266; E, T</button> <button class="hearbtn" data-say="AMEN">&#128266; AMEN</button></div>
+  </div>
+
+  <div class="card">
+    <h3>Words to know</h3>
+    <ul>
+      <li><b>Dot</b> (say <i>dit</i>): the short signal.</li>
+      <li><b>Dash</b> (say <i>dah</i>): the long signal, 3 times as long.</li>
+      <li><b>Morse code:</b> a way to write letters with dots and dashes, invented in the 1830s&ndash;40s for the telegraph.</li>
+      <li><b>Decode:</b> to turn dots and dashes back into letters.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>My notes <span class="tag">saved on this device</span></h3>
+    <textarea id="notes" placeholder="Write what you learn, your favorite trick, or your prayer intention..."></textarea>
+  </div>
+</section>
+
+<!-- ============ WHY ============ -->
+<section class="panel" id="why">
+  <h2>Why Morse Code in VEYM &amp; Our Faith</h2>
+  <div class="card">
+    <h3>Why do we learn it?</h3>
+    <div class="grid3">
+      <div><b>&#128066; Listening</b><br>You can't decode unless you stop talking and listen. That is the first step of prayer.</div>
+      <div><b>&#9203; Practice</b><br>Nobody learns it in a day. Small, faithful practice grows into skill.</div>
+      <div><b>&#129309; Teamwork</b><br>A message needs a sender and a receiver. We depend on each other.</div>
+      <div><b>&#128161; Service</b><br>Signals warn, guide and rescue. We learn skills to serve.</div>
+      <div><b>&#127775; Joy</b><br>A shared "secret language" builds friendship in our chapter.</div>
+    </div>
+  </div>
+  <h3>8 ways Morse connects to our faith <span class="tag">tap to hear</span></h3>
+  <div class="grid2" id="faithCards"></div>
+  <div class="card">
+    <h3>Dots and dashes of prayer</h3>
+    <p>Morse has only two signals, short and long, with silence in between. Prayer is like that: short prayers ("Jesus, I trust in You") and long ones (the Rosary, Adoration), and holy silence between them. God can receive a dot or a dash, and He is listening for <i>you</i>.</p>
+    <button class="hearbtn" data-say="JESUS I TRUST IN YOU">&#128266; Hear: JESUS I TRUST IN YOU</button>
+  </div>
+</section>
+
+<!-- ============ TREE ============ -->
+<section class="panel" id="tree">
+  <h2>The Morse Tree</h2>
+  <div class="card">
+    <p><b>How to read it:</b> Start at <b>START</b>. A <b>dot</b> <span class="sym" style="color:var(--burg)"><i class="dot"></i></span> sends you <b id="dotDir">left</b>. A <b>dash</b> <span class="sym" style="color:var(--burg)"><i class="dash"></i></span> sends you <b id="dashDir">right</b>. The letter where you stop is your answer.</p>
+    <p class="note"><b>Try it:</b> Tap any letter to light up its path and hear it, or use the Dot and Dash buttons to walk the tree yourself. Turn on <b>Hide letters</b> to discover them one at a time!</p>
+  </div>
+  <div class="readout" id="readout">
+    <div class="letter" id="trLetter">&middot;</div>
+    <div style="flex:1;min-width:160px"><div id="trSym" class="big"></div><div id="trMsg" style="color:var(--muted)">Tap a letter or start walking.</div></div>
+  </div>
+  <div class="walk">
+    <button class="btn" id="wDot"><span class="sym"><i class="dot"></i></span>&nbsp; Dot</button>
+    <button class="btn" id="wDash"><span class="sym"><i class="dash" style="width:22px"></i></span>&nbsp; Dash</button>
+    <button class="btn ghost" id="wBack">&#8593; Back up</button>
+    <button class="btn ghost" id="wReset">Reset</button>
+  </div>
+  <label class="chk"><input type="checkbox" id="hideLetters"> Hide letters (discover mode)</label>
+  <div class="treewrap"><svg id="treeSvg" role="img" aria-label="Morse code tree"></svg></div>
+  <div class="card" style="margin-top:14px">
+    <h3>Cool facts</h3>
+    <ul>
+      <li>The most common letters are at the top, so they are the <b>shortest</b>: E is one dot, T is one dash.</li>
+      <li>Level 1 has <b>2</b> letters, level 2 has <b>4</b>, level 3 has <b>8</b>, level 4 has <b>12</b>. That makes 26!</li>
+      <li>Everything starts with two letters: <b>E</b> (one dot, a short burst) and <b>T</b> (one dash, a long burst).</li>
+      <li>Dashed empty circles are for accented letters in other languages. Vietnamese does it differently: marks and special letters become extra <b>letters</b> (see the Việt tab).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TRICKS ============ -->
+<section class="panel" id="tricks">
+  <h2>Tips &amp; Tricks to Decode Fast</h2>
+  <div class="card">
+    <h3>1. Listen to the shape, don't count</h3>
+    <p>Don't count "dot dot dash". Learn each letter as a little <b>rhythm</b>. Say <b>dit</b> (quick) and <b>dah</b> (long). Tap to hear:</p>
+    <div id="ditdah"></div>
+  </div>
+  <div class="card">
+    <h3>2. Learn in 3 chunks, not 26 letters</h3>
+    <p><b>Chunk 1:</b> <span class="chip" data-say="E T I A N M"><span class="l">E T I A N M</span></span> You can already spell <b>MAN, TEAM, TIME, MINE</b>.</p>
+    <p><b>Chunk 2:</b> <span class="chip" data-say="S U R W D K G O"><span class="l">S U R W D K G O</span></span> Now add <b>GOD, WORD, SOUR, MARK</b>.</p>
+    <p><b>Chunk 3:</b> <span class="chip" data-say="H V F L P J B X C Y Z Q"><span class="l">H V F L P J B X C Y Z Q</span></span> Learn these as <i>cousins</i> of earlier letters using the tricks below.</p>
+  </div>
+  <div class="card">
+    <h3>3. The Opposites trick: swap dot &harr; dash</h3>
+    <p>Flip every dot to a dash (and every dash to a dot) and you get another letter! Learn <b>two letters for the price of one</b>.</p>
+    <div id="opposites"></div>
+    <p style="margin-top:.6em">No opposite partner: <b>C, H, V, Z</b>. Just memorize those four.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3>4. The Mirror trick: read it backwards</h3>
+      <div id="mirrors"></div>
+      <h3 style="margin-top:1em">Palindromes (same forwards and backwards)</h3>
+      <div id="palins"></div>
+    </div>
+    <div class="card">
+      <h3>5. Numbers are a pattern</h3>
+      <p>1&ndash;5: that many dots, then dashes. 6&ndash;0: that many dashes, then dots.</p>
+      <div id="numbers"></div>
+      <p style="margin-top:.6em"><b>5</b> = five dots. <b>0</b> = five dashes.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>6. Practice with faith words</h3>
+    <div id="faithwords"></div>
+    <p style="font-size:.9rem;color:var(--muted)">Tiếng Việt chips show the letters we send: the tone letter goes at the end of each syllable (Chúa = CHUAS).</p>
+  </div>
+  <div class="card">
+    <h3>7. Pro tips</h3>
+    <ul>
+      <li><b>Little and often:</b> 5 minutes a day beats an hour once a week.</li>
+      <li><b>Spell your name</b> and your saint's name again and again.</li>
+      <li><b>Don't stop on a mistake.</b> Miss a letter? Let it go and catch the next one.</li>
+      <li><b>Send as well as receive.</b> Try the Tap Key or flash a light.</li>
+      <li><b>Memorize SOS:</b> three dots, three dashes, three dots. It can save a life.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ VIETNAMESE ============ -->
+<section class="panel" id="viet">
+  <h2>Morse in Vietnamese: Chữ Việt trong Morse</h2>
+  <div id="vietRoot"></div>
+</section>
+
+<!-- ============ WHISTLE ============ -->
+<section class="panel" id="whistle">
+  <h2>Whistle Signals (Tín hiệu còi)</h2>
+  <div id="whRoot"></div>
+</section>
+
+<!-- ============ SOUNDS ============ -->
+<section class="panel" id="sounds">
+  <h2>Sounds: Translator &amp; Chart</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Text &rarr; Morse</h3>
+      <label class="chk"><input type="checkbox" id="vnMode"> Vietnamese mode (Tiếng Việt): turns marks and special letters into Morse letters</label>
+      <textarea id="txtIn" placeholder="Type a word or message">JESUS</textarea>
+      <div class="note hidden" id="vnSent"></div>
+      <div class="out" id="morseOut" aria-live="polite"></div>
+      <div class="biglamp" id="bigLamp"></div>
+      <div class="row">
+        <button class="btn" id="btnPlay">&#9654; Play</button>
+        <button class="btn ghost" id="btnStop">&#9632; Stop</button>
+        <button class="btn alt" id="btnFull">Flash my screen</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Morse &rarr; Text</h3>
+      <textarea id="morseIn" placeholder="Use . and - ; a space between letters and / between words">... --- ...</textarea>
+      <div class="out" id="textOut"></div>
+      <p style="color:var(--muted);font-size:.9rem">Type <b>.</b> for dot, <b>-</b> for dash, a <b>space</b> between letters, <b>/</b> between words.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Chart: tap a card to hear it</h3>
+    <h3 style="font-size:1rem;color:var(--muted)">Letters</h3>
+    <div class="chart" id="chartL"></div>
+    <h3 style="font-size:1rem;color:var(--muted);margin-top:1em">Numbers</h3>
+    <div class="chart" id="chartN"></div>
+  </div>
+</section>
+
+<!-- ============ PRACTICE ============ -->
+<section class="panel" id="practice">
+  <h2>Practice</h2>
+  <div class="subtabs">
+    <button data-sub="quiz" aria-selected="true">Letter Quiz</button>
+    <button data-sub="msg" aria-selected="false">Decode Messages</button>
+    <button data-sub="tapkey" aria-selected="false">Tap Key</button>
+    <button data-sub="vnq" aria-selected="false">Vietnamese Quiz</button>
+  </div>
+
+  <div class="sub active" id="sub-quiz">
+    <div class="card">
+      <div class="row">
+        <label style="flex:1;min-width:150px">Level<select id="qLevel">
+          <option value="1">1: E T I A N M</option>
+          <option value="2">2: + S U R W D K G O</option>
+          <option value="3">3: All letters</option>
+          <option value="4">4: Numbers</option>
+          <option value="5">5: Letters + numbers</option>
+        </select></label>
+        <label style="flex:1;min-width:150px">Mode<select id="qMode">
+          <option value="see">See it, pick the letter</option>
+          <option value="hear">Hear it, pick the letter</option>
+        </select></label>
+      </div>
+      <button class="btn" id="qStart">Start (10 questions)</button>
+      <div class="stats" style="margin-top:10px"><span>Question: <span id="qN">0</span>/10</span><span>Score: <span id="qS">0</span></span><span>Streak: <span id="qK">0</span></span></div>
+      <div class="qbox" id="qBox" style="margin-top:10px">Press <b>Start</b> to begin.</div>
+      <div class="opts" id="qOpts"></div>
+      <div class="fb" id="qFb"></div>
+      <div class="row"><button class="btn ghost hidden" id="qReplay">&#128266; Replay</button><button class="btn hidden" id="qNext">Next &rarr;</button></div>
+    </div>
+  </div>
+
+  <div class="sub" id="sub-msg">
+    <div class="card">
+      <h3>Decode the Message</h3>
+      <p>Decode the hidden verse or phrase, type your answer, and check it. Tap <b>Play</b> to hear it.</p>
+      <div class="qbox" id="mBox" style="min-height:120px"></div>
+      <p id="mHint" style="color:var(--muted);font-style:italic"></p>
+      <input type="text" id="mAns" placeholder="Type your answer here" autocomplete="off" autocapitalize="characters">
+      <div class="row">
+        <button class="btn" id="mCheck">Check</button>
+        <button class="btn alt" id="mPlay">&#128266; Play</button>
+        <button class="btn ghost" id="mReveal">Reveal</button>
+        <button class="btn ghost" id="mNext">New message</button>
+      </div>
+      <div class="fb" id="mFb"></div>
+    </div>
+  </div>
+
+  <div class="sub" id="sub-vnq">
+    <div class="card">
+      <h3>Vietnamese Morse Quiz</h3>
+      <p>Tone letters, special letters, and whole syllables.</p>
+      <div class="stats"><span>Question: <span id="vqN">0</span>/10</span><span>Score: <span id="vqS">0</span></span></div>
+      <div class="qbox" id="vqBox">Press Start to begin.</div>
+      <div class="opts" id="vqOpts"></div>
+      <div class="fb" id="vqFb"></div>
+      <div class="row"><button class="btn" id="vqStart">Start / restart</button><button class="btn hidden" id="vqNext">Next &rarr;</button></div>
+    </div>
+  </div>
+
+  <div class="sub" id="sub-tapkey">
+    <div class="card">
+      <h3>Tap Key</h3>
+      <p>Press and hold the big button. A quick tap is a <b>dot</b>, a longer hold is a <b>dash</b>. Pause to finish a letter.</p>
+      <div class="row">
+        <label style="flex:1;min-width:200px">Dot length: <b><span id="tapUnitV">220</span> ms</b>
+        <input type="range" id="tapUnit" min="100" max="500" step="10" value="220" style="width:100%"></label>
+        <button class="btn alt" id="tapChallenge">Challenge me</button>
+        <button class="btn ghost" id="tapClear">Clear</button>
+      </div>
+      <div class="row" style="justify-content:center"><button class="tap" id="tapPad">TAP HERE</button></div>
+      <div class="row"><b>Now sending:</b> <span class="sym" id="tapSym" style="min-height:14px"></span></div>
+      <div class="tapout" id="tapText"></div>
+      <div class="fb" id="tapFb"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="flashFull">Flashing your message. Tap anywhere to close.</div>
+
+<footer>Morse Code &amp; the Eucharist &middot; Lê Bảo Tịnh &middot; Thiếu Nhi Thánh Thể.</footer>
+
+<nav><div class="nwrap">
+  <button data-tab="daily" aria-selected="true"><span class="ic">&#127968;</span>Daily</button>
+  <button data-tab="today" aria-selected="false"><span class="ic">&#128203;</span>Today</button>
+  <button data-tab="why" aria-selected="false"><span class="ic">&#10013;</span>Why</button>
+  <button data-tab="tree" aria-selected="false"><span class="ic">&#127795;</span>Tree</button>
+  <button data-tab="tricks" aria-selected="false"><span class="ic">&#128161;</span>Tricks</button>
+  <button data-tab="viet" aria-selected="false"><span class="ic">&#128483;</span>Việt</button>
+  <button data-tab="whistle" aria-selected="false"><span class="ic">&#128227;</span>Whistle</button>
+  <button data-tab="sounds" aria-selected="false"><span class="ic">&#128266;</span>Sounds</button>
+  <button data-tab="practice" aria-selected="false"><span class="ic">&#127918;</span>Practice</button>
+</div></nav>
+
+<script src="config.js"></script>
+<script>
+/* ===== DATA ===== */
+const MORSE={A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..',1:'.----',2:'..---',3:'...--',4:'....-',5:'.....',6:'-....',7:'--...',8:'---..',9:'----.',0:'-----'};
+const REV={};for(const k in MORSE)REV[MORSE[k]]=k;
+const LET='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),NUM='1234567890'.split('');
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const state={wpm:8,mute:false,hap:false};
+const sym=c=>'<span class="sym">'+[...c].map(x=>x==='.'?'<i class="dot"></i>':'<i class="dash"></i>').join('')+'</span>';
+const syl=c=>[...c].map((x,i,a)=>x==='.'?(i===a.length-1?'dit':'di'):'dah').join('-');
+const inverse=c=>[...c].map(x=>x==='.'?'-':'.').join(''),rev=c=>[...c].reverse().join('');
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ===== AUDIO ===== */
+let ctx=null;
+function ac(){if(!ctx){const C=window.AudioContext||window.webkitAudioContext;ctx=C?new C():null}if(ctx&&ctx.state==='suspended')ctx.resume();return ctx}
+function unlock(){const c=ac();if(!c)return;try{const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0)}catch(e){}}
+['touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,function f(){unlock();if(ctx&&ctx.state==='running')document.removeEventListener(ev,f)},{passive:true}));
+const unitMs=()=>1200/state.wpm;
+const cur={timeouts:[],osc:null,cb:null};
+function lampAll(on){$$('.lamp,.biglamp').forEach(e=>e.classList.toggle('on',on));$('#flashFull').classList.toggle('on',on)}
+function stopAll(){
+  cur.timeouts.forEach(clearTimeout);cur.timeouts=[];
+  if(cur.osc){try{cur.osc.stop()}catch(e){}cur.osc=null}
+  if(navigator.vibrate)try{navigator.vibrate(0)}catch(e){}
+  lampAll(false);$$('.chip.pl').forEach(c=>c.classList.remove('pl'));
+  if(cur.cb){const f=cur.cb;cur.cb=null;f()}
+}
+function eventsFromCode(code){const ev=[];[...code].forEach((s,i)=>{if(i>0)ev.push([0,1]);ev.push([1,s==='.'?1:3])});return ev}
+function eventsFromText(text){
+  const ev=[];const words=text.toUpperCase().split(/\s+/).map(w=>[...w].filter(c=>MORSE[c])).filter(w=>w.length);
+  words.forEach((w,wi)=>{if(wi>0)ev.push([0,7]);w.forEach((ch,ci)=>{if(ci>0)ev.push([0,3]);ev.push(...eventsFromCode(MORSE[ch]))})});
+  return ev;
+}
+function play(events,onDone,timbre){
+  stopAll();const c=ac();const u=unitMs();
+  if(!events.length){if(onDone)onDone();return}
+  let t=0;const startAt=c?c.currentTime+0.06:0;let osc=null,g=null;
+  if(c&&!state.mute){osc=c.createOscillator();g=c.createGain();osc.type='sine';osc.frequency.value=620;if((timbre||state.timbre)==='whistle'){osc.frequency.value=2100;const lf=c.createOscillator(),lg=c.createGain();lf.frequency.value=32;lg.gain.value=90;lf.connect(lg);lg.connect(osc.frequency);lf.start(startAt);lf.stop(startAt+events.reduce((a,e)=>a+e[1],0)*u/1000+0.3)}g.gain.value=0;osc.connect(g);g.connect(c.destination);osc.start(startAt);cur.osc=osc}
+  if(state.hap&&navigator.vibrate){try{navigator.vibrate(events.map(e=>Math.round(e[1]*u)))}catch(e){}}
+  events.forEach(([on,n])=>{
+    const d=n*u;
+    if(on){
+      if(g){const a=startAt+t/1000,b=a+d/1000;g.gain.setValueAtTime(0,a);g.gain.linearRampToValueAtTime(0.4,a+0.006);g.gain.setValueAtTime(0.4,b-0.008);g.gain.linearRampToValueAtTime(0,b)}
+      cur.timeouts.push(setTimeout(()=>lampAll(true),60+t));
+      cur.timeouts.push(setTimeout(()=>lampAll(false),60+t+d));
+    }
+    t+=d;
+  });
+  cur.cb=onDone||null;
+  cur.timeouts.push(setTimeout(()=>{const f=cur.cb;cur.cb=null;if(cur.osc){try{cur.osc.stop()}catch(e){}cur.osc=null}$$('.chip.pl').forEach(c=>c.classList.remove('pl'));if(f)f()},60+t+80));
+}
+const playCode=(code,cb,tb)=>play(eventsFromCode(code),cb,tb);
+const say=(text,cb,tb)=>play(eventsFromText(text),cb,tb);
+
+/* ===== NAV & GLOBAL ===== */
+function showTab(id){stopAll();$$('.panel').forEach(p=>p.classList.toggle('active',p.id===id));$$('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===id));window.scrollTo({top:0,behavior:'smooth'})}
+function showSub(id){$$('.sub').forEach(p=>p.classList.toggle('active',p.id==='sub-'+id));$$('.subtabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.sub===id))}
+document.addEventListener('click',e=>{
+  const n=e.target.closest('nav button');if(n){showTab(n.dataset.tab);return}
+  const s=e.target.closest('.subtabs button');if(s){showSub(s.dataset.sub);return}
+  const g=e.target.closest('[data-goto]');if(g){showTab(g.dataset.goto);return}
+  const sy=e.target.closest('[data-say]');if(sy){const chip=sy.classList.contains('chip')?sy:null;if(chip)chip.classList.add('pl');say(sy.dataset.say);return}
+  const pc=e.target.closest('[data-code]');if(pc){pc.classList.add('pl');playCode(pc.dataset.code);return}
+});
+$('#wpm').addEventListener('input',e=>{state.wpm=+e.target.value;$('#wpmv').textContent=state.wpm});
+$('#mute').addEventListener('change',e=>{state.mute=e.target.checked});
+if(navigator.vibrate){$('#hapWrap').classList.remove('hidden');$('#hap').addEventListener('change',e=>{state.hap=e.target.checked})}
+let zoom=0;const setZoom=()=>{document.body.className=document.body.className.replace(/zoom\d/g,'').trim();if(zoom)document.body.classList.add('zoom'+zoom);store.set('mq-zoom',zoom)};
+const zs=parseInt(store.get('mq-zoom')||'0',10);if(zs>=0&&zs<=3){zoom=zs;setZoom()}
+$('#zp').onclick=()=>{zoom=Math.min(3,zoom+1);setZoom()};$('#zm').onclick=()=>{zoom=Math.max(0,zoom-1);setZoom()};
+$('#bannerX').onclick=()=>{$('#soundBanner').classList.add('hidden');store.set('mq-banner','1')};
+if(store.get('mq-banner')==='1')$('#soundBanner').classList.add('hidden');
+$$('input[data-save]').forEach(cb=>{cb.checked=store.get('mq-'+cb.dataset.save)==='1';cb.addEventListener('change',()=>store.set('mq-'+cb.dataset.save,cb.checked?'1':'0'))});
+$('#notes').value=store.get('mq-notes')||'';$('#notes').addEventListener('input',e=>store.set('mq-notes',e.target.value));
+
+/* ===== FAITH CARDS ===== */
+const FAITH=[
+ ['A message that began with God','"What hath God wrought!" (Numbers 23:23)','On May 24, 1844, Samuel Morse sent the first official long-distance telegraph message from Washington to Baltimore. He chose words from Scripture. The first thing sent across the wire was praise to God.','WHAT HATH GOD WROUGHT'],
+ ['Listening like Samuel','"Speak, Lord, your servant is listening." (1 Samuel 3:9–10)','Decoding Morse needs quiet, focused listening. So does prayer. In Adoration we practice what young Samuel learned: stop, listen, and answer God.','SPEAK LORD'],
+ ['Silence is part of the message','"Be still, and know that I am God." (Psalm 46:10)','In Morse the gaps between signals carry meaning, like the silence after Communion. Without pauses, a message is just noise.','BE STILL'],
+ ['Many signals, one body','"As a body is one though it has many parts..." (1 Corinthians 12:12)','A dot alone says almost nothing. A dash alone, the same. Together they spell a message. We are many different members, and the Eucharist makes us one Body of Christ.','ONE BODY'],
+ ['Light in the darkness','"Your word is a lamp for my feet." (Psalm 119:105)','Ships used to signal with lamps. Jesus says, "I am the light of the world" (John 8:12). At the Easter Vigil one candle spreads light to the whole church, like a signal passed on.','LIGHT'],
+ ['A cry for help','"Lord, save me!" (Matthew 14:30)','SOS is the most famous Morse signal: three dots, three dashes, three dots. Peter, sinking in the waves, sent the shortest prayer there is, and Jesus reached out His hand at once.','SOS'],
+ ['Keep at it','"Pray without ceasing." (1 Thessalonians 5:17)','Morse is learned by repeating again and again. So is prayer: the Rosary, the Our Father, daily Mass. Faithful repetition builds closeness with God.','PRAY ALWAYS'],
+ ['Pass it on','"Go, therefore, and make disciples of all nations." (Matthew 28:19)','Every Mass ends with a sending: "Go in peace." The Eucharist is not only for receiving but for carrying Jesus\' message to others. A telegraph is useless unless someone sends the message on.','GO IN PEACE']
+];
+$('#faithCards').innerHTML=FAITH.map((f,i)=>`<div class="card faith"><h3><span class="num">${i+1}</span>${f[0]}</h3><div class="verse">${f[1]}</div><p>${f[2]}</p><button class="hearbtn" data-say="${f[3]}">&#128266; Hear it: ${f[3]}</button></div>`).join('');
+
+/* ===== TREE (two layouts: wide for big screens, tall for phones) ===== */
+const treeApi=(function(){
+  const svg=$('#treeSvg'),ns='http://www.w3.org/2000/svg';
+  const P2L={};LET.forEach(l=>P2L[MORSE[l]]=l);
+  const paths=[''];for(let L=1;L<=4;L++)for(let i=0;i<Math.pow(2,L);i++)paths.push(i.toString(2).padStart(L,'0').replace(/0/g,'.').replace(/1/g,'-'));
+  const revealed=new Set();let curPath='',tall=false,edges={},nodes={},marks={};
+  const idx=p=>p?parseInt(p.replace(/\./g,'0').replace(/-/g,'1'),2):0;
+  function pos(p){const L=p.length,i=idx(p);
+    if(tall){return{x:34+L*80,y:26+(i+.5)*(660/Math.pow(2,L))}}
+    return{x:(i+.5)*1000/Math.pow(2,L),y:42+L*100}}
+  function el(n,a,p){const e=document.createElementNS(ns,n);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+  function build(){
+    tall=window.matchMedia('(max-width:700px)').matches;
+    svg.innerHTML='';edges={};nodes={};marks={};
+    svg.setAttribute('viewBox',tall?'0 0 372 700':'0 0 1000 480');
+    $('#dotDir').textContent=tall?'UP (toward the top)':'LEFT';$('#dashDir').textContent=tall?'DOWN (toward the bottom)':'RIGHT';
+    [1,2,3,4].forEach(L=>{const t=tall?el('text',{class:'lvl',x:34+L*80,y:14}):el('text',{class:'lvl',x:6,y:42+L*100+4,style:'text-anchor:start'});t.textContent=tall?'L'+L:'level '+L});
+    paths.filter(p=>p).forEach(p=>{const a=pos(p.slice(0,-1)),b=pos(p);edges[p]=el('line',{class:'edge',x1:a.x,y1:a.y,x2:b.x,y2:b.y})});
+    paths.filter(p=>p).forEach(p=>{const a=pos(p.slice(0,-1)),b=pos(p),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      marks[p]=p.slice(-1)==='.'?el('circle',{class:'mk',cx:mx,cy:my,r:tall?4.5:6}):el('rect',{class:'mk',x:mx-(tall?9:13),y:my-(tall?3:4),width:tall?18:26,height:tall?6:8,rx:3})});
+    paths.forEach(p=>{
+      const {x,y}=pos(p),L=P2L[p];const g=el('g',{class:'node'+(p===''?' root':(L?'':' empty'))});
+      el('circle',{cx:x,cy:y,r:p===''?(tall?24:27):(L?(tall?17:20):(tall?5:7))},g);
+      if(p===''){const t=el('text',{x,y,style:'font-size:'+(tall?10:12)+'px'},g);t.textContent='START'}
+      else if(L){const t=el('text',{x,y,style:'font-size:'+(tall?17:20)+'px'},g);t.textContent=L;g._t=t;g._L=L}
+      nodes[p]=g;
+      if(L||p===''){g.addEventListener('click',()=>select(p,true))}
+    });
+    paint();
+  }
+  function paint(){
+    Object.values(edges).forEach(e=>e.classList.remove('hl'));Object.values(marks).forEach(e=>e.classList.remove('hl'));Object.values(nodes).forEach(n=>n.classList.remove('hl'));
+    for(let k=1;k<=curPath.length;k++){const q=curPath.slice(0,k);edges[q].classList.add('hl');marks[q].classList.add('hl');nodes[q].classList.add('hl')}
+    const hide=$('#hideLetters').checked;
+    Object.values(nodes).forEach(g=>{if(g._t){const p=Object.keys(nodes).find(k=>nodes[k]===g);g._t.textContent=(hide&&!revealed.has(p))?'?':g._L}});
+    const L=P2L[curPath];
+    if(curPath===''){$('#trLetter').textContent='·';$('#trSym').innerHTML='';$('#trMsg').textContent='At the top. Pick dot or dash!'}
+    else{$('#trSym').innerHTML=sym(curPath)+' &nbsp;<span style="color:var(--muted)">'+syl(curPath)+'</span>';
+      if(L){$('#trLetter').textContent=L;$('#trMsg').textContent='Letter '+L+' ('+curPath.length+' signal'+(curPath.length>1?'s':'')+').'}
+      else{$('#trLetter').textContent='…';$('#trMsg').textContent=curPath.length<4?'No English letter here yet. Keep going!':'This pattern is not used for an English letter.'}}
+  }
+  function select(p,sound){curPath=p;if(P2L[p])revealed.add(p);paint();if(sound&&p)playCode(p)}
+  $('#wDot').onclick=()=>{if(curPath.length<4)select(curPath+'.',true)};
+  $('#wDash').onclick=()=>{if(curPath.length<4)select(curPath+'-',true)};
+  $('#wBack').onclick=()=>select(curPath.slice(0,-1),false);
+  $('#wReset').onclick=()=>{revealed.clear();select('',false)};
+  $('#hideLetters').onchange=()=>{revealed.clear();paint()};
+  let rt=null;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{const t=window.matchMedia('(max-width:700px)').matches;if(t!==tall)build()},200)});
+  build();
+  return{build};
+})();
+
+/* ===== TRICKS ===== */
+const chipFor=l=>`<span class="chip" data-code="${MORSE[l]}"><span class="l">${l}</span>${sym(MORSE[l])}</span>`;
+$('#ditdah').innerHTML=['A','B','C','D','S','O'].map(l=>`<div class="chip" data-code="${MORSE[l]}" style="display:flex"><span class="l">${l}</span> <span style="font-weight:600">${syl(MORSE[l])}</span></div>`).join('');
+(function(){
+  const seen=new Set(),pairs=[];
+  LET.forEach(l=>{const o=REV[inverse(MORSE[l])];if(o&&/[A-Z]/.test(o)&&o!==l&&!seen.has(l)&&!seen.has(o)){seen.add(l);seen.add(o);pairs.push([l,o])}});
+  const box=(a,b)=>`<span style="display:inline-block;margin:3px 6px 3px 0;padding:3px 5px;background:#fff;border:1px solid var(--line);border-radius:14px">${chipFor(a)}<b>&harr;</b>${chipFor(b)}</span>`;
+  $('#opposites').innerHTML=pairs.map(p=>box(p[0],p[1])).join('');
+  const mp=[],ms=new Set(),pal=[];
+  LET.forEach(l=>{const r=REV[rev(MORSE[l])];if(r===l)pal.push(l);else if(r&&/[A-Z]/.test(r)&&!ms.has(l)&&!ms.has(r)){ms.add(l);ms.add(r);mp.push([l,r])}});
+  $('#mirrors').innerHTML=mp.map(p=>box(p[0],p[1])).join('');
+  $('#palins').innerHTML=pal.map(chipFor).join('');
+})();
+$('#numbers').innerHTML=NUM.map(chipFor).join('');
+
+/* ===== SOUNDS ===== */
+const toMorse=t=>t.toUpperCase().split(/\s+/).map(w=>[...w].filter(c=>MORSE[c]).map(c=>MORSE[c]).join(' ')).filter(Boolean).join(' / ');
+function fromMorse(m){m=m.replace(/[•·]/g,'.').replace(/[–—_]/g,'-');return m.split(/\s*\/\s*|\s{3,}/).map(w=>w.trim().split(/\s+/).filter(Boolean).map(c=>REV[c]||'?').join('')).filter(Boolean).join(' ')}
+const updT=()=>{$('#morseOut').textContent=toMorse($('#txtIn').value)||'(type something)'};
+const updR=()=>{$('#textOut').textContent=fromMorse($('#morseIn').value)||'(decoded text appears here)'};
+$('#txtIn').addEventListener('input',updT);$('#morseIn').addEventListener('input',updR);updT();updR();
+$('#btnPlay').onclick=()=>say($('#txtIn').value);$('#btnStop').onclick=stopAll;
+const ff=$('#flashFull');
+function closeFlash(){stopAll();ff.classList.remove('show')}
+$('#btnFull').onclick=()=>{ff.classList.add('show');setTimeout(()=>say($('#txtIn').value),1200)};
+ff.onclick=closeFlash;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFlash()});
+$('#chartL').innerHTML=LET.map(l=>`<div class="chip" data-code="${MORSE[l]}"><span class="l">${l}</span>${sym(MORSE[l])}</div>`).join('');
+$('#chartN').innerHTML=NUM.map(l=>`<div class="chip" data-code="${MORSE[l]}"><span class="l">${l}</span>${sym(MORSE[l])}</div>`).join('');
+
+/* ===== QUIZ ===== */
+const LEVELS={1:'ETIANM'.split(''),2:'ETIANMSURWDKGO'.split(''),3:LET,4:NUM,5:LET.concat(NUM)};
+const quiz={n:0,score:0,streak:0,cur:null,last:null,mode:'see',pool:[],answered:false,active:false};
+function qNext(){
+  if(quiz.n>=10){quiz.active=false;$('#qBox').innerHTML='<h3>Round complete!</h3><p class="big">You scored <b>'+quiz.score+'/10</b>. '+(quiz.score>=8?'Excellent! Try the next level.':'Keep practicing. You are getting there!')+'</p>';$('#qOpts').innerHTML='';$('#qNext').classList.add('hidden');$('#qReplay').classList.add('hidden');$('#qFb').textContent='';return}
+  quiz.n++;quiz.answered=false;$('#qN').textContent=quiz.n;$('#qFb').textContent='';$('#qNext').classList.add('hidden');
+  let c;do{c=quiz.pool[Math.floor(Math.random()*quiz.pool.length)]}while(c===quiz.last&&quiz.pool.length>1);
+  quiz.cur=c;quiz.last=c;
+  const opts=shuffle([c].concat(shuffle(quiz.pool.filter(x=>x!==c)).slice(0,3)));
+  $('#qOpts').innerHTML=opts.map(o=>'<button data-o="'+o+'">'+o+'</button>').join('');
+  if(quiz.mode==='see'){$('#qBox').innerHTML='<div>Which letter is this? <small style="color:var(--muted)">(tap to hear)</small></div><div data-code="'+MORSE[c]+'" style="cursor:pointer">'+sym(MORSE[c])+'</div>';$('#qReplay').classList.add('hidden')}
+  else{$('#qBox').innerHTML='<div class="big">&#128266; Listen carefully&hellip;</div>';$('#qReplay').classList.remove('hidden');setTimeout(()=>playCode(MORSE[c]),300)}
+}
+$('#qStart').onclick=()=>{quiz.pool=LEVELS[$('#qLevel').value];quiz.mode=$('#qMode').value;quiz.n=0;quiz.score=0;quiz.streak=0;quiz.last=null;quiz.active=true;$('#qS').textContent=0;$('#qK').textContent=0;qNext()};
+$('#qOpts').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||quiz.answered||!quiz.active)return;quiz.answered=true;
+  const ok=b.dataset.o===quiz.cur;
+  $$('#qOpts button').forEach(x=>{x.disabled=true;if(x.dataset.o===quiz.cur)x.classList.add('right')});
+  if(ok){quiz.score++;quiz.streak++;$('#qFb').innerHTML='<span style="color:var(--ok)">Correct! '+quiz.cur+' = '+sym(MORSE[quiz.cur])+'</span>'}
+  else{b.classList.add('wrong');quiz.streak=0;$('#qFb').innerHTML='<span style="color:var(--bad)">Not quite. '+quiz.cur+' = '+sym(MORSE[quiz.cur])+' ('+syl(MORSE[quiz.cur])+')</span>';playCode(MORSE[quiz.cur])}
+  $('#qS').textContent=quiz.score;$('#qK').textContent=quiz.streak;
+  if(quiz.mode==='hear')$('#qBox').innerHTML='<div class="big">It was <b>'+quiz.cur+'</b></div>'+sym(MORSE[quiz.cur]);
+  $('#qNext').classList.remove('hidden');$('#qNext').textContent=quiz.n>=10?'See results':'Next →';
+});
+$('#qNext').onclick=qNext;$('#qReplay').onclick=()=>{if(quiz.cur)playCode(MORSE[quiz.cur])};
+
+/* ===== DECODE MESSAGES ===== */
+const PHRASES=[
+ ['AMEN','The word we say at the end of every prayer.'],
+ ['JESUS','The Name above every name (Philippians 2:9).'],
+ ['GOD IS LOVE','1 John 4:8'],
+ ['PRAY ALWAYS','1 Thessalonians 5:17'],
+ ['LOVE ONE ANOTHER','John 13:34'],
+ ['I AM THE BREAD OF LIFE','John 6:35, Jesus speaking about the Eucharist.'],
+ ['STAY WITH US LORD','Luke 24:29. The disciples at Emmaus, who knew Jesus in the breaking of the bread.'],
+ ['SPEAK LORD','1 Samuel 3:9–10. Samuel listens.'],
+];
+let mCur=null,mOrder=[];
+function mNew(){
+  if(!mOrder.length)mOrder=shuffle(PHRASES.map((_,i)=>i));
+  mCur=PHRASES[mOrder.pop()];
+  $('#mBox').innerHTML=mCur[0].split(' ').map(w=>[...w].map(c=>`<span style="display:inline-block;margin:6px 8px;color:var(--burg-d)">${sym(MORSE[c])}</span>`).join('')).join('<br>');
+  $('#mHint').textContent='Hint: '+mCur[1];$('#mAns').value='';$('#mFb').textContent='';
+}
+const norm=s=>s.toUpperCase().replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+$('#mCheck').onclick=()=>{if(norm($('#mAns').value)===mCur[0])$('#mFb').innerHTML='<span style="color:var(--ok)">&#10004; Yes! "'+mCur[0]+'". '+mCur[1]+'</span>';else $('#mFb').innerHTML='<span style="color:var(--bad)">Not yet. Check each letter and try again.</span>'};
+$('#mAns').addEventListener('keydown',e=>{if(e.key==='Enter')$('#mCheck').click()});
+$('#mReveal').onclick=()=>{$('#mFb').innerHTML='Answer: <b>'+mCur[0]+'</b> &middot; '+mCur[1]};
+$('#mPlay').onclick=()=>say(mCur[0]);$('#mNext').onclick=mNew;mNew();
+
+/* ===== TAP KEY ===== */
+const tap={down:0,sym:'',text:'',t1:null,t2:null,pressed:false,osc:null,g:null,target:null};
+const tapUnit=()=>+$('#tapUnit').value;
+$('#tapUnit').oninput=()=>{$('#tapUnitV').textContent=tapUnit()};
+function tapRender(){$('#tapSym').innerHTML=tap.sym?sym(tap.sym):'';$('#tapText').textContent=tap.text}
+function toneOn(){const c=ac();if(!c||state.mute)return;tap.osc=c.createOscillator();tap.g=c.createGain();tap.osc.frequency.value=620;tap.g.gain.value=0.3;tap.osc.connect(tap.g);tap.g.connect(c.destination);tap.osc.start()}
+function toneOff(){if(tap.osc){try{tap.g.gain.setValueAtTime(0,ac().currentTime);tap.osc.stop()}catch(e){}tap.osc=null}}
+function tapDown(){if(tap.pressed)return;tap.pressed=true;clearTimeout(tap.t1);clearTimeout(tap.t2);tap.down=performance.now();$('#tapPad').classList.add('down');toneOn();lampAll(true);if(state.hap&&navigator.vibrate)try{navigator.vibrate(600)}catch(e){}}
+function tapUp(){
+  if(!tap.pressed)return;tap.pressed=false;const d=performance.now()-tap.down,u=tapUnit();
+  $('#tapPad').classList.remove('down');toneOff();lampAll(false);if(navigator.vibrate)try{navigator.vibrate(0)}catch(e){}
+  tap.sym+=(d>2*u)?'-':'.';if(tap.sym.length>6)tap.sym=tap.sym.slice(-6);
+  tapRender();tap.t1=setTimeout(tapCommit,u*3);
+}
+function tapCommit(){
+  const ch=REV[tap.sym]||'?';tap.text+=ch;const code=tap.sym;tap.sym='';tapRender();
+  if(tap.target){
+    if(ch===tap.target){$('#tapFb').innerHTML='<span style="color:var(--ok)">&#10004; Yes! '+ch+' = '+sym(code)+' Next one&hellip;</span>';setTimeout(tapNewTarget,1200)}
+    else $('#tapFb').innerHTML='<span style="color:var(--bad)">You sent '+ch+'. Target is <b>'+tap.target+'</b> = '+sym(MORSE[tap.target])+' Try again.</span>';
+  }
+  tap.t2=setTimeout(()=>{if(!tap.target){tap.text+=' ';tapRender()}},tapUnit()*4);
+}
+function tapNewTarget(){const pool=LEVELS[2];tap.target=pool[Math.floor(Math.random()*pool.length)];tap.text='';tapRender();$('#tapFb').innerHTML='Send the letter: <b style="font-size:1.6rem;font-family:Georgia,serif">'+tap.target+'</b> <span style="color:var(--muted)">(hint: '+syl(MORSE[tap.target])+')</span>'}
+$('#tapChallenge').onclick=()=>{if(tap.target){tap.target=null;$('#tapFb').textContent='Free-play mode.'}else tapNewTarget()};
+$('#tapClear').onclick=()=>{tap.sym='';tap.text='';tapRender();$('#tapFb').textContent=''};
+const pad=$('#tapPad');
+pad.addEventListener('pointerdown',e=>{e.preventDefault();try{pad.setPointerCapture(e.pointerId)}catch(x){}unlock();tapDown()});
+pad.addEventListener('pointerup',tapUp);pad.addEventListener('pointercancel',tapUp);
+pad.addEventListener('contextmenu',e=>e.preventDefault());
+const tapActive=()=>$('#practice').classList.contains('active')&&$('#sub-tapkey').classList.contains('active');
+document.addEventListener('keydown',e=>{if(e.code!=='Space'||!tapActive())return;if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&document.activeElement.type!=='range')return;e.preventDefault();if(!e.repeat)tapDown()});
+document.addEventListener('keyup',e=>{if(e.code!=='Space'||!tapActive())return;e.preventDefault();tapUp()});
+/* ===== VIETNAMESE MORSE (rules from the chapter's "Morse Code" chart) ===== */
+const VN_TONES=[
+ ['Sắc','/','S','á','Chúa'],
+ ['Hỏi','?','Z','ả','Thể'],
+ ['Nặng','.','J','ạ','Mẹ'],
+ ['Huyền','\\','Q','à','Bình'],
+ ['Ngã','~','X','ã','Mãi']
+];
+const VN_MODS=[['Â','AA','Ân'],['Ă','AW','Ăn'],['Ê','EE','Yêu'],['Ơ','OW','Ơn'],['Ô','OO','Tôi'],['Ư','UW','Thư']];
+const VN_TONE_C={S:'́',Z:'̉',J:'̣',Q:'̀',X:'̃'};
+const VN_TONE_BY_C={'́':'S','̉':'Z','̣':'J','̀':'Q','̃':'X'};
+const VN_TONE_NAME={S:'sắc',Z:'hỏi',J:'nặng',Q:'huyền',X:'ngã'};
+const VN_MOD_BY_C={'̂':{A:'AA',E:'EE',O:'OO'},'̆':{A:'AW'},'̛':{O:'OW',U:'UW'}};
+const vnEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vnShuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const vnStrip=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[đĐ]/g,'d').toUpperCase().replace(/[^A-Z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+const vnNfc=s=>String(s).normalize('NFC').trim().replace(/\s+/g,' ').toLowerCase();
+function vnSyllable(tok){
+  const s=String(tok).toUpperCase().normalize('NFD');let base='',coded='',tone='';const notes=[];
+  for(let i=0;i<s.length;i++){
+    const ch=s[i];
+    if(/[̀-ͯ]/.test(ch))continue;
+    const marks=[];let j=i+1;
+    while(j<s.length&&/[̀-ͯ]/.test(s[j])){marks.push(s[j]);j++}
+    let mod='',modMark='';
+    marks.forEach(m=>{if(VN_TONE_BY_C[m]){if(!tone)tone=VN_TONE_BY_C[m]}else if(VN_MOD_BY_C[m]&&VN_MOD_BY_C[m][ch]){mod=VN_MOD_BY_C[m][ch];modMark=m}});
+    if(ch==='Đ'){base+='D';coded+='DD';notes.push('Đ→DD')}
+    else if(/[A-Z0-9]/.test(ch)){base+=ch;if(mod){coded+=mod;notes.push((ch+modMark).normalize('NFC').toLowerCase()+'→'+mod)}else coded+=ch}
+    i=j-1;
+  }
+  return{base,coded,tone,telex:coded+tone,notes};
+}
+function encodeVN(text){
+  const syl=String(text).split(/[\s\-]+/).filter(Boolean).map(vnSyllable).filter(x=>x.telex);
+  return{syl,telex:syl.map(x=>x.telex).join(' ')};
+}
+function vnDecodeWord(w){
+  w=String(w).toUpperCase().replace(/[^A-Z0-9]/g,'');if(!w)return '';
+  let tone='';
+  if(w.length>=2&&'SZJQX'.indexOf(w[w.length-1])>=0){tone=w[w.length-1];w=w.slice(0,-1)}
+  const PAIR={AA:['A','̂'],AW:['A','̆'],EE:['E','̂'],OO:['O','̂'],OW:['O','̛'],UW:['U','̛'],DD:['đ','']};
+  const toks=[];
+  for(let i=0;i<w.length;i++){
+    const p=w[i]+(w[i+1]||'');
+    if(PAIR[p]){toks.push({b:PAIR[p][0],m:PAIR[p][1],t:''});i++}
+    else toks.push({b:w[i],m:'',t:''});
+  }
+  const isV=t=>!!t&&t.b.length===1&&'AEIOUY'.indexOf(t.b)>=0;
+  if(tone){
+    let ex=-1;
+    if(toks[0]&&toks[1]&&toks[2]&&((toks[0].b==='Q'&&toks[1].b==='U')||(toks[0].b==='G'&&toks[1].b==='I'))&&isV(toks[2])&&!toks[1].m)ex=1;
+    let s=-1;for(let i=0;i<toks.length;i++){if(isV(toks[i])&&i!==ex){s=i;break}}
+    if(s>=0){
+      let e=s;while(e+1<toks.length&&isV(toks[e+1]))e++;
+      const nuc=[];for(let i=s;i<=e;i++)nuc.push(i);
+      const hasFinal=e<toks.length-1;
+      const modded=nuc.filter(i=>toks[i].m);
+      let pick;
+      if(modded.length)pick=modded[modded.length-1];
+      else if(nuc.length===1)pick=nuc[0];
+      else if(nuc.length===2)pick=hasFinal?nuc[1]:nuc[0];
+      else pick=nuc[1];
+      toks[pick].t=VN_TONE_C[tone];
+    }
+  }
+  return toks.map(t=>t.b==='đ'?'đ':(t.b.toLowerCase()+t.m+t.t).normalize('NFC')).join('');
+}
+function vnDecodeText(txt){
+  return String(txt).split(/\s+/).filter(Boolean).map(w=>{const o=vnDecodeWord(w);return o?o.charAt(0).toLocaleUpperCase('vi')+o.slice(1):''}).filter(Boolean).join(' ');
+}
+
+/* ===== VIETNAMESE TAB, TRANSLATOR MODE, QUIZ, MESSAGES ===== */
+const VN_SIGNALS=[
+ ['Mời nhận bản tin','Start of message','AAAA','4A'],
+ ['Sẵn sàng nhận tin','Be ready for message','K','K'],
+ ['Hết bản tin','End of message','AR','AR'],
+ ['Truyền lầm','Error','HH','HH'],
+ ['Xin truyền lại','Pass on message (repeat)','IMI','IMI'],
+ ['Xin chờ đợi','Please wait','AS','AS'],
+ ['Cấp cứu','Help','SOS','SOS'],
+ ['Xin đánh chậm lại','Please slow down','VL','VL'],
+ ['Hiểu rồi','Understood','R','R']
+];
+const VN_FAITH=['Chúa Giêsu','Thánh Thể','Chúa yêu con','Tạ ơn Chúa','Bình an','Lạy Chúa','Mẹ Maria','Yêu thương'];
+const VN_EXAMPLES=['Chúa Giêsu','Thánh Thể','Thiếu Nhi Thánh Thể','Chúa yêu con','Tạ ơn Chúa','Bình an','Lạy Chúa','Mẹ Maria','Amen'];
+function msgText(){const c=$('#vnMode');return c&&c.checked?encodeVN($('#txtIn').value).telex:$('#txtIn').value}
+const vnLetterSyms=t=>String(t).split('').map(c=>MORSE[c]?sym(MORSE[c]):'').join('<span style="display:inline-block;width:10px"></span>');
+const vnChip=(t,extra)=>'<span class="chip" data-say="'+t+'"'+(extra||'')+'><span class="l">'+t+'</span></span>';
+const vnPhraseChip=p=>{const t=encodeVN(p).telex;return '<span class="chip" data-say="'+t+'"><span class="l">'+vnEsc(p)+'</span><small style="font-weight:600;color:var(--muted)">'+t+'</small></span>'};
+
+function renderVietTab(){
+  const root=$('#vietRoot');if(!root)return;
+  const STUDENT=!!$('#bannerX');
+  const HEAR=STUDENT?'hearbtn':'btn alt sm';
+  const toneRows=VN_TONES.map(t=>{const x=encodeVN(t[4]).telex;return '<tr><td><b>'+t[0]+'</b></td><td style="font-size:1.15rem;font-weight:700;white-space:nowrap">( '+vnEsc(t[1])+' ) &nbsp;'+t[3]+'</td><td>'+vnChip(t[2],' style="margin:0"')+'</td><td>'+t[4]+' &rarr; '+vnChip(x,' style="margin:0"')+'</td></tr>'}).join('');
+  const modRows=VN_MODS.map(m=>{const x=encodeVN(m[2]).telex;return '<tr><td style="font-size:1.4rem;font-weight:800;font-family:Georgia,serif">'+m[0]+'</td><td>'+vnChip(m[1],' style="margin:0"')+'</td><td>'+m[2]+' &rarr; '+vnChip(x,' style="margin:0"')+'</td></tr>'}).join('')
+    +'<tr><td style="font-size:1.4rem;font-weight:800;font-family:Georgia,serif">Đ</td><td>'+vnChip('DD',' style="margin:0"')+' <span class="tag">extra</span></td><td>Đức &rarr; '+vnChip(encodeVN('Đức').telex,' style="margin:0"')+'</td></tr>';
+  const sigRows=VN_SIGNALS.map(s=>'<div class="sigrow"><div class="nm"><b>'+s[3]+'</b> &middot; '+s[0]+' <span class="en">('+s[1]+')</span></div><button class="'+HEAR+'" data-say="'+s[2]+'" aria-label="Play '+s[3]+'">&#128266;</button><div class="pat">'+vnLetterSyms(s[2])+'</div></div>').join('');
+  const teach=STUDENT?'':
+   '<div class="card"><h3>Teaching notes: Vietnamese Morse (10 minutes)</h3><ol>'
+   +'<li><b>Hook (1 min):</b> Write <i>Chúa</i> on the board. Ask: "Morse only has A to Z. Where do we put the little mark?"</li>'
+   +'<li><b>Tone letters (3 min):</b> Chant together: <i>sắc, hỏi, nặng, huyền, ngã</i> = <b>S, Z, J, Q, X</b>. Use the memory tricks below. Tap each letter so they hear it.</li>'
+   +'<li><b>Special letters (2 min):</b> The hat (^) doubles the vowel: <b>Â=AA, Ê=EE, Ô=OO</b>. The curve or hook uses <b>W</b>: <b>Ă=AW, Ơ=OW, Ư=UW</b>.</li>'
+   +'<li><b>Convert together (3 min):</b> Use the converter with <i>Thánh Thể</i>, then let students try their own names and saints\' names.</li>'
+   +'<li><b>Signals (1 min):</b> Play SOS, R (understood), K (be ready) from the chapter list.</li></ol>'
+   +'<p><b>Common mistakes:</b> forgetting to double the vowel (THEZ instead of THEEZ); putting the tone letter in the middle; mixing up Z (hỏi) and X (ngã); confusing the tone letter Q with the "qu" in words like <i>quà</i> (QUAQ).</p>'
+   +'<p><b>Activity ideas:</b> <i>Dấu Detective</i>: show a Morse-letter word (e.g. THANHS) and teams race to write the Vietnamese. <i>Name Relay</i>: each team converts a saint\'s name and flashes it to another team.</p>'
+   +'<div class="warn" style="background:#fff3e0;border:1px dashed #c77700;border-radius:10px;padding:8px 12px;color:#6b4000"><b>Please confirm with your chapter:</b> your chart lists the five tone letters and six special letters but does not say <i>where</i> the tone letter goes. This file puts it at the <b>end of the syllable</b> (the common Telex habit), e.g. Chúa = CHUAS. The chart also does not include Đ, so <b>Đ = DD</b> is added as a standard extra. If your chapter does it differently, tell me and I will adjust.</div></div>';
+  root.innerHTML=
+   '<div class="card"><span class="tag">Chuyên Môn: Morse Code</span><h3 style="margin-top:.4em">Sending Vietnamese in Morse code</h3>'
+   +'<p>Morse code only has the letters A to Z and numbers. Vietnamese also has special letters (Â Ă Ê Ơ Ô Ư) and five tone marks. The solution: spell the syllable with plain letters, swap each special letter for a <b>letter code</b>, and send the tone as <b>one more letter</b>.</p>'
+   +'<p>Remember the start of the tree: everything begins with <b>E</b> (one dot, a short burst) and <b>T</b> (one dash, a long burst).</p></div>'
+   +'<div class="grid2"><div class="card"><h3>1. The five tone marks <small style="color:var(--muted);font-weight:400">(Các dấu)</small></h3><div class="tw" style="overflow-x:auto"><table><tr><th>Tone</th><th>Mark</th><th>Send</th><th>Example</th></tr>'+toneRows+'</table></div><p style="margin-top:.6em">Learn the set as <b>S Z J Q X</b> = sắc, hỏi, nặng, huyền, ngã.</p></div>'
+   +'<div class="card"><h3>2. The special letters <small style="color:var(--muted);font-weight:400">(Các chữ có dấu)</small></h3><div class="tw" style="overflow-x:auto"><table><tr><th>Letter</th><th>Send</th><th>Example</th></tr>'+modRows+'</table></div><p style="margin-top:.6em"><b>Hat (^) = double the vowel</b> (AA, EE, OO). <b>Curve or hook = W</b> (AW, OW, UW).</p></div></div>'
+   +'<div class="card"><h3>3. How to send a syllable</h3><ol><li>Write the syllable with <b>no marks</b>: Thể &rarr; <b>THE</b></li><li>Swap each special letter for its code: ê &rarr; EE, so <b>THEE</b></li><li>Add the <b>tone letter at the end</b>: hỏi &rarr; Z, so <b>THEEZ</b></li><li>Send each syllable with the normal gap between words.</li></ol>'
+   +'<h3 style="margin-top:.8em;font-size:1.05rem">Memory tricks</h3><ul><li><b>S</b> = <b>S</b>ắc (same first letter).</li><li><b>J</b> = nặng: the dot sits <i>under</i> the letter like the hook of a J.</li><li><b>X</b> = ngã: the squiggle ~ is a lazy X.</li><li><b>Z</b> = hỏi: a zig-zag question hook.</li><li><b>Q</b> = huyền: the one left over, so learn the whole set S Z J Q X.</li></ul></div>'
+   +'<div class="card"><h3>Try it: Vietnamese &rarr; Morse</h3><input type="text" id="vnConvIn" value="Thánh Thể" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type Vietnamese here, e.g. Chúa Giêsu"><div id="vnConvOut" style="margin:.6em 0"></div>'
+   +'<div class="row"><button class="'+HEAR+'" id="vnConvPlay">&#128266; Play</button></div><p style="margin:.4em 0 .2em;color:var(--muted)">Tap an example to convert it (and hear it):</p><div id="vnExamples">'+VN_EXAMPLES.map(p=>'<span class="chip" data-fill="'+vnEsc(p)+'" data-say="'+encodeVN(p).telex+'"><span class="l">'+vnEsc(p)+'</span></span>').join('')+'</div>'
+   +'<p class="note" style="margin-top:.8em">Tip: you can also use <b>Vietnamese mode</b> on the Sounds / Translator tab to play and flash whole sentences.</p></div>'
+   +'<div class="card"><h3>Decode it: Morse letters &rarr; Vietnamese</h3><input type="text" id="vnDecIn" value="CHUAS GIEESU" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. THANHS THEEZ"><div id="vnDecOut" style="font:700 1.6rem Georgia,serif;color:var(--burg);margin:.5em 0"></div><p style="color:var(--muted);font-size:.92rem">Type the letters you decoded from the Morse (A to Z), one syllable per word. Letters like S Z J Q X at the end of a syllable are tone letters.</p></div>'
+   +'<div class="card"><h3>Common uses of Morse <small style="color:var(--muted);font-weight:400">(Tín hiệu thông dụng)</small></h3><div class="sigrows">'+sigRows+'</div><p style="color:var(--muted);font-size:.92rem;margin-top:.5em">From your chapter\'s chart. Each letter is sent with the normal 3-unit gap between letters.</p></div>'
+   +teach;
+  const conv=()=>vnConvRender();
+  $('#vnConvIn').addEventListener('input',conv);
+  $('#vnConvPlay').onclick=()=>say(encodeVN($('#vnConvIn').value).telex);
+  $('#vnExamples').addEventListener('click',e=>{const c=e.target.closest('[data-fill]');if(c){$('#vnConvIn').value=c.dataset.fill;conv()}});
+  const dec=()=>{$('#vnDecOut').textContent=vnDecodeText($('#vnDecIn').value)||'…'};
+  $('#vnDecIn').addEventListener('input',dec);dec();conv();
+}
+function vnConvRender(){
+  const v=$('#vnConvIn').value;
+  const rows=v.split(/[\s\-]+/).filter(Boolean).map(t=>({t,s:vnSyllable(t)})).filter(x=>x.s.telex);
+  if(!rows.length){$('#vnConvOut').innerHTML='<span style="color:var(--muted)">Type a Vietnamese word or phrase above.</span>';return}
+  const telex=rows.map(r=>r.s.telex).join(' ');
+  $('#vnConvOut').innerHTML=rows.map(r=>'<div style="margin:.3em 0"><b>'+vnEsc(r.t)+'</b> &rarr; letters <span class="vncode">'+r.s.base+'</span>'+(r.s.notes.length?' &middot; '+vnEsc(r.s.notes.join(', ')):'')+(r.s.tone?' &middot; '+VN_TONE_NAME[r.s.tone]+' &rarr; <b>'+r.s.tone+'</b>':'')+' &rArr; <b style="color:var(--burg)">'+r.s.telex+'</b></div>').join('')
+    +'<div style="margin-top:.5em"><b>Send:</b> <span class="vncode">'+telex+'</span></div><div class="out" style="font-family:ui-monospace,Consolas,monospace;word-break:break-word;margin-top:.4em;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff">'+toMorse(telex)+'</div>';
+}
+
+/* Faith words (replaces the old list, now with correct Vietnamese letters) */
+(function(){
+  const el=$('#faithwords');if(!el)return;
+  el.innerHTML=['AMEN','JESUS','MARY','GOD','LOVE','PRAY','HOLY','PEACE'].map(w=>'<span class="chip" data-say="'+w+'"><span class="l">'+w+'</span></span>').join('')
+   +'<h3 style="margin-top:.8em;font-size:1rem">Tiếng Việt <small style="color:var(--muted);font-weight:400">(tone letter at the end of each syllable)</small></h3>'+VN_FAITH.map(vnPhraseChip).join('');
+})();
+
+/* Translator: Vietnamese mode (turns on by itself when Vietnamese letters are typed) */
+const VN_CHARS=/[\u00C0-\u1EF9]/;
+let vnAutoOn=false;
+function vnRefreshTr(auto){
+  const on0=$('#vnMode').checked,src=$('#txtIn').value;
+  const s=$('#vnSent');
+  const on=$('#vnMode').checked,t=msgText();
+  $('#morseOut').textContent=toMorse(t)||'(type something)';
+  if(on&&t){s.classList.remove('hidden');s.textContent=(vnAutoOn?'Vietnamese characters detected, so Vietnamese mode was turned on. ':'')+'Sent as these Morse letters: '+t}
+  else if(!on&&VN_CHARS.test(src)){
+    const bad=[...new Set(src.match(/[\u00C0-\u1EF9]/g))].join(' ');
+    s.classList.remove('hidden');s.textContent='Heads up: '+bad+' can\u2019t be sent in plain Morse, so they were skipped. Tick \u201cVietnamese mode\u201d above to send them.';
+  }
+  else s.classList.add('hidden');
+  const raw=fromMorse($('#morseIn').value),el=$('#textOut');
+  if(on&&raw){el.textContent=raw;const d=document.createElement('div');d.style.cssText='margin-top:6px;color:#7a1f2b;font-family:Georgia,serif';d.textContent='Vietnamese: '+vnDecodeText(raw);el.appendChild(d)}
+  else el.textContent=raw||'(decoded text appears here)';
+}
+$('#txtIn').addEventListener('input',()=>{let auto=false;const c=$('#vnMode');if(!c.checked&&VN_CHARS.test($('#txtIn').value)){c.checked=true;auto=true;vnAutoOn=true}if(!VN_CHARS.test($('#txtIn').value))vnAutoOn=false;vnRefreshTr(auto)});
+$('#morseIn').addEventListener('input',()=>vnRefreshTr());
+$('#vnMode').addEventListener('change',()=>{vnAutoOn=false;vnRefreshTr()});
+$('#btnPlay').onclick=()=>say(msgText());
+$('#btnFull').onclick=()=>{ff.classList.add('show');setTimeout(()=>say(msgText()),1200)};
+if($('#btnCopy'))$('#btnCopy').onclick=()=>{const t=toMorse(msgText());if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>{})};
+
+/* Decode Messages: add Vietnamese phrases */
+[['Chúa yêu con','Vietnamese: "God loves you." Try typing it with the marks!'],
+ ['Thánh Thể','Vietnamese: the Eucharist. Type it with the marks if you can.'],
+ ['Chúa Giêsu','Vietnamese: Lord Jesus.'],
+ ['Tạ ơn Chúa','Vietnamese: "Thanks be to God."'],
+ ['Bình an','Vietnamese: "Peace."'],
+ ['Lạy Chúa','Vietnamese: "O Lord" (Lord, hear us).'],
+ ['Thiếu Nhi Thánh Thể','Vietnamese: our movement! Send each syllable with its tone letter.']
+].forEach(p=>PHRASES.push([encodeVN(p[0]).telex,p[1],p[0]]));
+mOrder=[];mNew();
+$('#mCheck').onclick=()=>{
+  const a=$('#mAns').value,fb=$('#mFb');
+  if(mCur[2]){
+    if(vnNfc(a)===vnNfc(mCur[2]))fb.innerHTML='<span style="color:var(--ok)">&#10004; Perfect! "'+vnEsc(mCur[2])+'", marks and all. (Sent as '+mCur[0]+')</span>';
+    else if(vnStrip(a)===vnStrip(mCur[2]))fb.innerHTML='<span style="color:var(--ok)">Right letters! Now add the marks: <b>'+vnEsc(mCur[2])+'</b></span>';
+    else if(norm(a)===mCur[0])fb.innerHTML='<span style="color:var(--ok)">Those are the Morse letters. Turn them into Vietnamese: <b>'+vnEsc(mCur[2])+'</b></span>';
+    else fb.innerHTML='<span style="color:var(--bad)">Not yet. The last letter of a syllable can be a tone letter (S Z J Q X), and AA, AW, EE, OO, OW, UW are special letters.</span>';
+    return;
+  }
+  if(norm(a)===mCur[0])fb.innerHTML='<span style="color:var(--ok)">&#10004; Yes! "'+mCur[0]+'". '+vnEsc(mCur[1])+'</span>';
+  else fb.innerHTML='<span style="color:var(--bad)">Not yet. Check each letter and try again.</span>';
+};
+$('#mReveal').onclick=()=>{$('#mFb').innerHTML='Answer: <b>'+(mCur[2]?vnEsc(mCur[2])+'</b> (sent as '+mCur[0]+')':mCur[0]+'</b>')+' &middot; '+vnEsc(mCur[1])};
+
+/* Vietnamese quiz */
+function vnBuildPool(){
+  const P=[];
+  VN_TONES.forEach(t=>P.push({q:'Which letter do we send for the '+t[0]+' mark ('+t[3]+')?',o:['S','Z','J','Q','X'],a:t[2],e:t[0]+' = '+t[2]+'. Example: '+t[4]+' → '+encodeVN(t[4]).telex+'.'}));
+  const codes=VN_MODS.map(m=>m[1]);
+  VN_MODS.forEach(m=>P.push({q:'How do we send '+m[0]+' in Vietnamese Morse?',o:[m[1]].concat(vnShuffle(codes.filter(c=>c!==m[1])).slice(0,3)),a:m[1],e:m[0]+' is sent as '+m[1]+'. Example: '+m[2]+' → '+encodeVN(m[2]).telex+'.'}));
+  ['Chúa','Thể','Mẹ','Bình','Mãi','Yêu','Ơn','Lạy'].forEach(w=>{
+    const s=vnSyllable(w),right=s.telex,cand=new Set([s.base,s.coded]);
+    Object.keys(VN_TONE_C).forEach(L=>cand.add(s.coded+L));cand.delete(right);
+    P.push({q:'How do we send “'+w+'”?',o:[right].concat(vnShuffle([...cand]).slice(0,3)),a:right,e:w+' → '+right+'. '+(s.notes.length?s.notes.join(', ')+'. ':'')+(s.tone?VN_TONE_NAME[s.tone]+' = '+s.tone+' at the end.':'No tone letter needed.')});
+  });
+  ['THANHS','CHUAS','MEJ','BINHQ','LAYJ'].forEach(t=>{
+    const right=vnDecodeText(t),bs=t.slice(0,-1),cand=new Set([vnDecodeText(bs)]);
+    Object.keys(VN_TONE_C).forEach(L=>cand.add(vnDecodeText(bs+L)));cand.delete(right);
+    P.push({q:'In Vietnamese Morse, what does “'+t+'” spell?',o:[right].concat(vnShuffle([...cand]).slice(0,3)),a:right,e:t+' = '+right+'. The last letter '+t.slice(-1)+' is the tone letter ('+VN_TONE_NAME[t.slice(-1)]+').'});
+  });
+  return P;
+}
+const vq={n:0,s:0,pool:[],cur:null,ans:false,active:false};
+function vqNext(){
+  if(vq.n>=10){vq.active=false;$('#vqBox').innerHTML='<b>Quiz complete!</b> Score: '+vq.s+' / 10. '+(vq.s>=8?'Excellent! You can send Vietnamese in Morse.':'Review the tone letters and special letters, then try again.');$('#vqOpts').innerHTML='';$('#vqFb').textContent='';$('#vqNext').classList.add('hidden');return}
+  vq.cur=vq.pool[vq.n];vq.n++;vq.ans=false;$('#vqN').textContent=vq.n;$('#vqBox').textContent=vq.cur.q;$('#vqFb').textContent='';$('#vqNext').classList.add('hidden');
+  $('#vqOpts').innerHTML=vnShuffle(vq.cur.o).map(o=>'<button class="txt" data-c="'+(o===vq.cur.a?1:0)+'">'+vnEsc(o)+'</button>').join('');
+}
+$('#vqStart').onclick=()=>{vq.pool=vnShuffle(vnBuildPool()).slice(0,10);vq.n=0;vq.s=0;vq.active=true;$('#vqS').textContent=0;vqNext()};
+$('#vqOpts').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||vq.ans||!vq.active)return;vq.ans=true;
+  const ok=b.dataset.c==='1';if(ok)vq.s++;$('#vqS').textContent=vq.s;
+  $$('#vqOpts button').forEach(x=>{x.disabled=true;if(x.dataset.c==='1')x.classList.add('right')});if(!ok)b.classList.add('wrong');
+  $('#vqFb').innerHTML=(ok?'<span style="color:var(--ok)">&#10004; Correct! ':'<span style="color:var(--bad)">Not quite. ')+vnEsc(vq.cur.e)+'</span>';
+  $('#vqNext').classList.remove('hidden');$('#vqNext').textContent=vq.n>=10?'See results':'Next →';
+});
+$('#vqNext').onclick=vqNext;
+
+renderVietTab();
+
+
+/* ===== WHISTLE SIGNALS TAB ===== */
+state.timbre=state.timbre||'beep';
+const WH_SIG=[
+ {g:'Get ready',letters:'AAAA',lbl:'4A',vn:'Mời nhận bản tin',en:'Start of message',todo:'Stop talking and face your leader. Get your pencil and paper ready.'},
+ {g:'Get ready',letters:'K',lbl:'K',vn:'Sẵn sàng nhận tin',en:'Be ready for the message',todo:'Eyes and ears on your leader. The message starts right after this.'},
+ {g:'Finished',letters:'AR',lbl:'AR',vn:'Hết bản tin',en:'End of message',todo:'The message is finished. Stop writing.'},
+ {g:'During a message',letters:'AS',lbl:'AS',vn:'Xin chờ đợi',en:'Please wait',todo:'Wait quietly and stay ready.'},
+ {g:'During a message',letters:'VL',lbl:'VL',vn:'Xin đánh chậm lại',en:'Please slow down',todo:'The message is too fast. Listen for it to come slower.'},
+ {g:'During a message',letters:'HH',lbl:'HH',vn:'Truyền lầm',en:'Error',todo:'A mistake was sent. Cross out the last word and wait for it to be sent again.'},
+ {g:'During a message',letters:'IMI',lbl:'IMI',vn:'Xin truyền lại',en:'Please repeat the message',todo:'Someone is asking for the message to be sent again.'},
+ {g:'Reply',letters:'R',lbl:'R',vn:'Hiểu rồi',en:'Understood',todo:'The message was received and understood.'},
+ {g:'Emergency',letters:'SOS',lbl:'SOS',vn:'Cấp cứu',en:'Help!',todo:'Someone needs help. Go to the nearest leader right away.'}
+];
+function renderWhistle(){
+  const root=$('#whRoot');if(!root)return;
+  const STUDENT=!!$('#bannerX');const HEAR=STUDENT?'hearbtn':'btn alt sm';
+  const WARN='style="background:#fff3e0;border:1px dashed #c77700;border-radius:10px;padding:8px 12px;color:#6b4000;margin:.6em 0"';
+  const by=l=>WH_SIG.find(s=>s.letters===l);
+  const legend='<span class="sym" style="color:var(--burg)"><i class="dot"></i></span> <b>short blast</b> &nbsp;&nbsp; <span class="sym" style="color:var(--burg)"><i class="dash"></i></span> <b>long blast</b> (3&times; as long)';
+  const tile=s=>'<div class="card" style="margin:0"><span class="tag">'+s.lbl+'</span><h3 style="margin-top:.4em">'+s.vn+'</h3><p style="color:var(--muted);margin:0 0 .4em">'+s.en+'</p><div style="font-size:1.1rem;margin:.5em 0;color:var(--burg)">'+vnLetterSyms(s.letters)+'</div><p>'+s.todo+'</p><button class="'+HEAR+'" data-wh="'+s.letters+'">&#128266; Hear the whistle</button></div>';
+  let rows='',last='';
+  WH_SIG.forEach(s=>{if(s.g!==last){rows+='<div class="sigg">'+s.g+'</div>';last=s.g}
+    rows+='<div class="sigrow"><div class="nm"><b>'+s.lbl+'</b> &middot; '+s.vn+' <span class="en">('+s.en+')</span></div><button class="'+HEAR+'" data-wh="'+s.letters+'" aria-label="Play '+s.lbl+'">&#128266;</button><div class="pat">'+vnLetterSyms(s.letters)+'</div><div class="td">'+s.todo+'</div></div>'});
+  const teach=STUDENT?'':
+   '<div class="card"><h3>Teaching notes: Whistle signals (8&ndash;10 minutes)</h3><ol>'
+   +'<li><b>Hook (1 min):</b> Make some noise, then play <b>4A</b>. Ask: "How would a whole group know a message is coming?"</li>'
+   +'<li><b>Whistle alphabet (2 min):</b> short blast = dot, long blast = dash (three times as long). Practice by clapping short and long claps.</li>'
+   +'<li><b>Get-ready signals (2 min):</b> teach <b>4A</b> (attention, start of message) and <b>K</b> (be ready), then <b>AR</b> (finished).</li>'
+   +'<li><b>Receiver\'s view (2 min):</b> run the simulator above once on the projector. Pause on each stage and ask "what do you do now?"</li>'
+   +'<li><b>Live whistle (2 min):</b> a leader or older member whistles a short message (a name works well) with 4A, K and AR. Everyone writes it down.</li></ol>'
+   +'<p><b>Game idea: Signal Says.</b> Call a whistle signal and the group does the matching action: <b>4A</b> stand and face the leader, <b>K</b> pencils up, <b>AR</b> pencils down and sit, <b>AS</b> freeze, <b>R</b> thumbs up. Anyone who moves on the wrong signal joins a "helper" group and calls the next one.</p>'
+   +'<p><b>Game idea: Whistle Relay.</b> Each team\'s runner waits for 4A + K before collecting a message card, and must wait for AR before returning to the team.</p>'
+   +'<p><b>Safety and room tips:</b> never blow a whistle near anyone\'s ear. In a small room, use the Speed slider and the on-screen sound, or use a flashlight (short flash, long flash). Check what the hall allows.</p>'
+   +'<div '+WARN+'><b>Please confirm with your chapter:</b> I built this from the signals in your Morse chart (4A, K, AR, HH, IMI, AS, SOS, VL, R). Short blast = dot and long blast = dash is confirmed, with the standard timing. The "what you do" column is my plain-language suggestion. Please check that (1) 4A then K is the order your leaders use and (2) R is the reply your chapter expects after AR. Tell me and I will adjust.</div></div>';
+  root.innerHTML=
+   '<div class="card"><span class="tag">Tín hiệu còi</span><h3 style="margin-top:.4em">Morse with a whistle</h3>'
+   +'<p>Leaders can send Morse with a whistle too. A whistle can be heard across a field, so the signals tell everyone <b>when to listen</b> and <b>when the message is over</b>.</p>'
+   +'<p>'+legend+'</p>'
+   +'<label class="chk"><input type="checkbox" id="whGlobal"> Use the whistle sound everywhere in this file (instead of the beep)</label>'
+   +'<div class="note">Use the <b>Speed</b> slider at the top to slow the signals down while you learn them.</div></div>'
+   +'<h3>1. The get-ready signals</h3><div class="grid2" style="margin-bottom:16px">'+tile(by('AAAA'))+tile(by('K'))+'</div>'
+   +'<div class="note"><b>Remember:</b> when you hear the get-ready signals, stop talking, face your leader, and get ready to write or listen.</div>'
+   +'<div class="card"><h3>2. A whistle message from start to finish</h3><p>Watch the four stages as the message plays. This is what a receiver sees and hears.</p>'
+   +'<div class="wstages"><div class="wstage"><b>1 &middot; 4A</b>Attention</div><div class="wstage"><b>2 &middot; K</b>Ready</div><div class="wstage"><b>3</b>Message</div><div class="wstage"><b>4 &middot; AR</b>Finished</div></div>'
+   +'<label style="display:block;margin:.4em 0">Message to send <input type="text" id="whMsg" value="GOD IS LOVE" autocomplete="off" spellcheck="false" autocapitalize="characters"></label>'
+   +'<div style="margin:.3em 0">'+['GOD IS LOVE','JESUS','GO IN PEACE','Chúa yêu con'].map(m=>'<span class="chip" data-wmsg="'+m+'"><span class="l" style="font-size:1rem">'+m+'</span></span>').join('')+'</div>'
+   +'<div class="row"><button class="btn" id="whSimPlay">&#9654; Play the whistle message</button><button class="btn ghost" id="whSimStop">&#9632; Stop</button></div>'
+   +'<div class="wstatus" id="whStatus">Press play and follow the stages.</div></div>'
+   +'<div class="card" style="border:3px solid var(--gold)"><h3>3. How do I know the message has finished?</h3>'
+   +'<p style="font-size:1.1rem">Listen for <b>AR</b> <span style="color:var(--burg)">'+vnLetterSyms('AR')+'</span> (<i>di-dah, di-dah-dit</i>). That is <b>Hết bản tin</b>: end of message.</p>'
+   +'<ol><li><b>Hear AR:</b> the message is finished.</li><li><b>Stop writing.</b> Pencils down.</li><li><b>Look at your leader</b> and check what you wrote.</li><li><b>Answer:</b> <b>R</b> if you understood, or <b>IMI</b> to ask for it again.</li></ol>'
+   +'<p><button class="'+HEAR+'" data-wh="AR">&#128266; Hear AR</button></p>'
+   +'<h3 style="font-size:1.05rem;margin-top:.8em">Watch out for</h3><ul>'
+   +'<li><b>A long pause is not the end.</b> The sender may just be between words. Keep listening until you hear AR.</li>'
+   +'<li><b>No AR yet?</b> Keep your pencil ready. The message is still going.</li>'
+   +'<li><b>HH</b> (two groups of four short blasts) means a mistake was sent. Cross out the last word and wait.</li>'
+   +'<li><b>AS</b> means wait, and <b>VL</b> means slow down. The message is not over.</li></ul></div>'
+   +'<div class="card"><h3>4. All the signals from your chart</h3><p style="color:var(--muted)">Tap the speaker to hear each one as a whistle. The last column says what to do when you hear it.</p>'
+   +'<div class="sigrows">'+rows+'</div></div>'
+   +'<div class="grid2"><div class="card"><h3>5. Whistle timing</h3>'
+   +'<div class="bar"><span class="on" style="width:20px"></span><b style="margin-left:8px">short blast = 1</b></div>'
+   +'<div class="bar"><span class="on" style="width:60px"></span><b style="margin-left:8px">long blast = 3</b></div>'
+   +'<div class="bar"><span class="off" style="width:20px"></span><b style="margin-left:8px">pause inside a letter = 1</b></div>'
+   +'<div class="bar"><span class="off" style="width:60px"></span><b style="margin-left:8px">pause between letters = 3</b></div>'
+   +'<div class="bar"><span class="off" style="width:140px"></span><b style="margin-left:8px">pause between words = 7</b></div></div>'
+   +'<div class="card"><h3>6. Tips for the receiver</h3><ul>'
+   +'<li><b>Stay silent.</b> You cannot hear a whistle through talking.</li>'
+   +'<li><b>Write what you hear:</b> a dot for a short blast, a dash for a long blast, and a space between letters.</li>'
+   +'<li><b>Count beats, not seconds:</b> one long blast is three short ones.</li>'
+   +'<li><b>Noisy room?</b> The same signals work with a flashlight: short flash, long flash.</li>'
+   +'<li><b>Safety:</b> never blow a whistle close to anyone\'s ear.</li></ul></div></div>'
+   +'<div class="card"><h3>7. Whistle quiz</h3><p>Listen to the whistle and choose what it means.</p>'
+   +'<div class="stats"><span>Question: <span id="whqN">0</span>/8</span><span>Score: <span id="whqS">0</span></span></div>'
+   +'<div class="qbox" id="whqBox" style="margin-top:10px">Press Start to begin.</div><div class="opts" id="whqOpts"></div><div class="fb" id="whqFb"></div>'
+   +'<div class="row"><button class="btn" id="whqStart">Start / restart</button><button class="btn ghost hidden" id="whqReplay">&#128266; Play again</button><button class="btn hidden" id="whqNext">Next &rarr;</button></div></div>'
+   +teach;
+
+  $('#whGlobal').addEventListener('change',e=>{state.timbre=e.target.checked?'whistle':'beep'});
+  $('#whSimPlay').onclick=whSim;$('#whSimStop').onclick=()=>{whStopSim();stopAll();$('#whStatus').textContent='Stopped.'};
+  root.addEventListener('click',e=>{const c=e.target.closest('[data-wmsg]');if(c)$('#whMsg').value=c.dataset.wmsg});
+  $('#whqStart').onclick=()=>{whq.pool=vnShuffle(WH_SIG).slice(0,8);whq.n=0;whq.s=0;whq.active=true;$('#whqS').textContent=0;whqNext()};
+  $('#whqNext').onclick=whqNext;
+  $('#whqReplay').onclick=()=>{if(whq.cur)say(whq.cur.letters,null,'whistle')};
+  $('#whqOpts').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b||whq.ans||!whq.active)return;whq.ans=true;
+    const ok=b.dataset.c==='1';if(ok)whq.s++;$('#whqS').textContent=whq.s;
+    $$('#whqOpts button').forEach(x=>{x.disabled=true;if(x.dataset.c==='1')x.classList.add('right')});if(!ok)b.classList.add('wrong');
+    const c=whq.cur;
+    $('#whqFb').innerHTML=(ok?'<span style="color:var(--ok)">&#10004; Correct! ':'<span style="color:var(--bad)">Not quite. ')+'<b>'+c.lbl+'</b> '+vnLetterSyms(c.letters)+' means <b>'+c.vn+'</b> ('+c.en+'). '+vnEsc(c.todo)+'</span>';
+    $('#whqNext').classList.remove('hidden');$('#whqNext').textContent=whq.n>=8?'See results':'Next →';
+  });
+}
+document.addEventListener('click',e=>{const w=e.target.closest('[data-wh]');if(w){whStopSim();say(w.dataset.wh,null,'whistle')}});
+
+let whRun=0,whTimer=null;
+function whStages(cur,done){$$('.wstage').forEach((el,i)=>{el.classList.toggle('cur',i===cur);el.classList.toggle('done',i<done)})}
+function whStopSim(){whRun++;clearTimeout(whTimer);whStages(-1,0)}
+function whSimMsg(){const v=($('#whMsg').value||'').trim()||'GOD IS LOVE';return /[À-ỹ]/.test(v)?encodeVN(v).telex:v}
+function whSim(){
+  stopAll();whRun++;const my=whRun;clearTimeout(whTimer);
+  const seq=[
+   ['AAAA','<b>1 &middot; Attention.</b> The leader is calling for attention (4A). Stop talking, face the leader, get your pencil ready.'],
+   ['K','<b>2 &middot; Ready.</b> K: be ready! The message starts next. Eyes up, pencil on paper.'],
+   [whSimMsg(),'<b>3 &middot; The message.</b> Write the dots and dashes (or letters) you hear.'],
+   ['AR','<b>4 &middot; AR!</b> That is the end-of-message signal. Stop writing.']
+  ];
+  const step=i=>{
+    if(my!==whRun||!$('#whistle').classList.contains('active'))return;
+    if(i>=seq.length){whStages(-1,4);$('#whStatus').innerHTML='&#10004; <b>Message finished.</b> Pencils down. Check your letters, then answer <b>R</b> (understood) or <b>IMI</b> (please repeat).';return}
+    whStages(i,i);$('#whStatus').innerHTML=seq[i][1];
+    play(eventsFromText(seq[i][0]),()=>{if(my!==whRun)return;whTimer=setTimeout(()=>step(i+1),i===2?900:1500)},'whistle');
+  };
+  step(0);
+}
+const whq={n:0,s:0,pool:[],cur:null,ans:false,active:false};
+function whqNext(){
+  if(whq.n>=8){whq.active=false;$('#whqBox').innerHTML='<b>Quiz complete!</b> Score: '+whq.s+' / 8. '+(whq.s>=7?'Excellent! You know your whistle signals.':'Review the signals table and try again.');$('#whqOpts').innerHTML='';$('#whqFb').textContent='';$('#whqNext').classList.add('hidden');$('#whqReplay').classList.add('hidden');return}
+  whq.cur=whq.pool[whq.n];whq.n++;whq.ans=false;$('#whqN').textContent=whq.n;
+  $('#whqBox').innerHTML='<div class="big">&#128266; Listen to the whistle&hellip; what does it mean?</div>';
+  const opts=vnShuffle([whq.cur].concat(vnShuffle(WH_SIG.filter(x=>x!==whq.cur)).slice(0,3)));
+  $('#whqOpts').innerHTML=opts.map(x=>'<button class="txt" data-c="'+(x===whq.cur?1:0)+'">'+x.vn+'<br><small style="font-weight:600;color:var(--muted)">'+x.en+'</small></button>').join('');
+  $('#whqFb').textContent='';$('#whqNext').classList.add('hidden');$('#whqReplay').classList.remove('hidden');
+  setTimeout(()=>say(whq.cur.letters,null,'whistle'),300);
+}
+renderWhistle();
+
+
+/* ===== QUESTION BANK (expanded practice) ===== */
+(function(){
+const E=vnEsc, rnd=a=>a[Math.floor(Math.random()*a.length)];
+/* --- more messages for Decode Messages --- */
+[
+['HAIL MARY','Luke 1:28. The angel greets Mary.'],['OUR FATHER','Matthew 6:9. The prayer Jesus taught us.'],
+['GLORY TO GOD','Luke 2:14. The angels at Bethlehem.'],['FOLLOW ME','Matthew 4:19. Jesus calls the fishermen.'],
+['FEED MY SHEEP','John 21:17. Jesus to Peter.'],['TAKE AND EAT','Matthew 26:26. The Last Supper.'],
+['PEACE BE WITH YOU','John 20:19. The Risen Lord greets His disciples.'],['LAMB OF GOD','John 1:29. We say it just before Communion.'],
+['THIS IS MY BODY','Luke 22:19. The words of Jesus at the Last Supper.'],['DO THIS IN MEMORY OF ME','Luke 22:19. Jesus gives us the Eucharist.'],
+['I AM THE WAY','John 14:6. "I am the way and the truth and the life."'],['LET THE CHILDREN COME TO ME','Mark 10:14.'],
+['THE LORD IS MY SHEPHERD','Psalm 23:1.'],['REJOICE ALWAYS','1 Thessalonians 5:16.'],['LOVE YOUR ENEMIES','Matthew 5:44.'],
+['BLESSED ARE THE PURE IN HEART','Matthew 5:8. One of the Beatitudes.'],['LIGHT OF THE WORLD','Matthew 5:14. Jesus says this to His disciples.'],
+['SALT OF THE EARTH','Matthew 5:13.'],['COME HOLY SPIRIT','A prayer we say before we start and on Pentecost.'],
+['THANKS BE TO GOD','Our reply at the end of the readings and of Mass.'],['THE LORD BE WITH YOU','The priest\'s greeting at Mass. We answer: And with your spirit.'],
+['HOLY HOLY HOLY','Isaiah 6:3. We sing it at every Mass.'],['EUCHARIST','The source and summit of the Christian life.'],
+['ROSARY','The prayer of the beads that walks with Mary through the life of Jesus.'],['MARY','Mother of Jesus and our Mother.'],
+['JOSEPH','Foster father of Jesus and patron of the Church.'],['SAINT MICHAEL','The archangel who defends us in battle.'],
+['BE READY','Matthew 24:44. Stay awake and be prepared.'],['SOS','The call for help. Memorize it!'],['GOD','In the beginning, God (Genesis 1:1).'],
+['HOPE','One of the three theological virtues (faith, hope, love).'],['FAITH','The first theological virtue.'],['LOVE','The greatest of these is love (1 Corinthians 13:13).'],
+['PEACE','"Peace I leave with you" (John 14:27).'],['GRACE','God\'s free gift of His life in us.'],['BREAD','Jesus is the Bread of Life.'],
+['MERCY','Jesus, I trust in You. The Divine Mercy.'],['CROSS','We make the sign of it every day.'],['ANGEL','A messenger of God. Gabriel brought good news to Mary.']
+].forEach(p=>{if(!PHRASES.some(x=>x[0]===p[0]))PHRASES.push(p)});
+const mHdr=document.querySelector('#sub-msg input#mAns');
+if(mHdr&&!$('#mLvl')){
+  const d=document.createElement('div');d.className='row';
+  d.innerHTML='<label>Level: <select id="mLvl"><option value="all">All messages</option><option value="easy">Easy (short words)</option><option value="med">Medium</option><option value="hard">Hard (full verses)</option></select></label> <span id="mCount" style="color:var(--muted)"></span>';
+  mHdr.parentNode.insertBefore(d,mHdr.previousElementSibling&&mHdr.previousElementSibling.id==='mHint'?mHdr.previousElementSibling:mHdr);
+}
+mNew=function(){
+  const lv=($('#mLvl')||{}).value||'all';
+  const ok=p=>{const n=p[0].replace(/ /g,'').length;return lv==='all'||(lv==='easy'&&n<=7)||(lv==='med'&&n>7&&n<=14)||(lv==='hard'&&n>14)};
+  const idx=PHRASES.map((_,i)=>i).filter(i=>ok(PHRASES[i]));
+  const pool=idx.length?idx:PHRASES.map((_,i)=>i);
+  if(!mOrder.length||mOrder.some(i=>!pool.includes(i))) mOrder=shuffle(pool);
+  mCur=PHRASES[mOrder.pop()];
+  $('#mBox').innerHTML=mCur[0].split(' ').map(w=>[...w].map(c=>'<span style="display:inline-block;margin:6px 10px;color:var(--burg-d)">'+sym(MORSE[c])+'</span>').join('')).join('<br>');
+  $('#mHint').textContent='Hint: '+mCur[1];$('#mAns').value='';$('#mFb').textContent='';
+  if($('#mCount'))$('#mCount').textContent=pool.length+' messages in this level';
+};
+$('#mNext').onclick=mNew;
+if($('#mLvl'))$('#mLvl').onchange=()=>{mOrder=[];mNew()};
+mOrder=[];mNew();
+
+/* --- more Vietnamese quiz questions --- */
+const VW=['Giêsu','Maria','Thánh','Thể','Bánh','Rượu','Cầu','Nguyện','Hòa','Bình','Yêu','Thương','Đức','Tin','Cậy','Mến','Con','Cha','Chúa','Mẹ','Lạy','Xin','Vâng','Hiệp','Nhất','Phép','Lễ','Đoàn','Thiếu','Nhi','Ơn','Tạ','Sáng','Ngợi','Khen','Vui','Mừng','Tình','Thần','Linh'];
+const _vp=vnBuildPool;
+vnBuildPool=function(){
+  const P=_vp();
+  vnShuffle(VW).slice(0,16).forEach(w=>{
+    let s;try{s=vnSyllable(w)}catch(e){return}
+    if(!s||!s.telex)return;
+    const right=s.telex,cand=new Set([s.base,s.coded]);
+    Object.keys(VN_TONE_C).forEach(L=>cand.add(s.coded+L));cand.delete(right);
+    if(cand.size>=3)P.push({q:'How do we send “'+w+'” in Vietnamese Morse?',o:[right].concat(vnShuffle([...cand]).slice(0,3)),a:right,e:w+' → '+right+'. '+(s.notes&&s.notes.length?s.notes.join(', ')+'. ':'')+(s.tone?VN_TONE_NAME[s.tone]+' = '+s.tone+' at the end.':'No tone letter needed.')});
+    const bs=right.replace(/[SZJQX]$/,''),c2=new Set();
+    let rt;try{rt=vnDecodeText(right)}catch(e){return}
+    Object.keys(VN_TONE_C).forEach(L=>{try{c2.add(vnDecodeText(bs+L))}catch(e){}});try{c2.add(vnDecodeText(bs))}catch(e){}c2.delete(rt);
+    if(c2.size>=3)P.push({q:'We receive “'+right+'”. Which Vietnamese word is it?',o:[rt].concat(vnShuffle([...c2]).slice(0,3)),a:rt,e:right+' = '+rt+'. The last letter is the tone letter when it is S, Z, J, Q or X.'});
+  });
+  return P;
+};
+
+/* --- generated questions --- */
+const WORDS=['AMEN','LORD','GOD','LOVE','PRAY','HOPE','FAITH','GRACE','BREAD','WINE','PEACE','HOLY','CROSS','MARY','SAINT','ANGEL','MASS','SOUL','LIGHT','TRUTH','MERCY','JESUS','JOY','SIN','HOST','PRIEST','TRUST','SERVE','SHARE','FAST'];
+const opt4=(right,pool)=>{const w=vnShuffle(pool.filter(x=>x!==right)).slice(0,3);return vnShuffle([right].concat(w))};
+const G=[];
+const letterOpts=(c,pool)=>opt4(c,pool||LET);
+G.push(['letters',()=>{const c=rnd(LET);return{q:'Which letter is this?<br>'+sym(MORSE[c]),h:1,o:letterOpts(c),a:c,e:c+' = '+MORSE[c].replace(/\./g,'•').replace(/-/g,'–')+' ('+syl(MORSE[c])+')'}}]);
+G.push(['letters',()=>{const c=rnd(LET),code=MORSE[c],cs=new Set([inverse(code),rev(code),code.slice(0,-1)+(code.slice(-1)==='.'?'-':'.'),code.slice(1)+'.',code+'.']);cs.delete(code);const ds=vnShuffle([...cs].filter(x=>x&&x.length<=5)).slice(0,3);
+  while(ds.length<3){const x=MORSE[rnd(LET)];if(x!==code&&!ds.includes(x))ds.push(x)}
+  return{q:'Which code is the letter <b>'+c+'</b>?',h:1,o:vnShuffle([code].concat(ds)),a:code,oh:1,e:c+' = '+syl(code)}}]);
+G.push(['tricks',()=>{const L=LET.filter(l=>{const o=REV[inverse(MORSE[l])];return o&&/[A-Z]/.test(o)&&o!==l});const c=rnd(L),a=REV[inverse(MORSE[c])];
+  return{q:'<b>Opposites trick.</b> Swap every dot and dash in <b>'+c+'</b> ('+sym(MORSE[c])+'). Which letter do you get?',h:1,o:letterOpts(a),a:a,e:c+' ↔ '+a+': swapping dots and dashes turns '+syl(MORSE[c])+' into '+syl(MORSE[a])+'.'}}]);
+G.push(['tricks',()=>{const L=LET.filter(l=>{const o=REV[rev(MORSE[l])];return o&&/[A-Z]/.test(o)&&o!==l});const c=rnd(L),a=REV[rev(MORSE[c])];
+  return{q:'<b>Mirror trick.</b> Read <b>'+c+'</b> ('+sym(MORSE[c])+') backwards. Which letter do you get?',h:1,o:letterOpts(a),a:a,e:c+' backwards is '+a+' ('+syl(MORSE[a])+').'}}]);
+G.push(['letters',()=>{const c=rnd(LET),n=[...MORSE[c]].filter(x=>x==='-').length,d=[...MORSE[c]].length-n;const dash=Math.random()<.5,a=dash?n:d;
+  return{q:'How many <b>'+(dash?'dashes':'dots')+'</b> are in the letter <b>'+c+'</b>? '+sym(MORSE[c]),h:1,o:vnShuffle([0,1,2,3,4].filter(x=>x!==a).slice(0,3).concat(a)).map(String),a:String(a),e:c+' = '+syl(MORSE[c])+', so '+a+(dash?' dash(es).':' dot(s).')}}]);
+G.push(['numbers',()=>{const c=rnd(NUM);return{q:'Which number is this?<br>'+sym(MORSE[c]),h:1,o:opt4(c,NUM),a:c,e:c+' = '+MORSE[c]+'. Numbers 1–5 begin with that many dots; 6–0 begin with that many dashes.'}}]);
+G.push(['numbers',()=>{const c=rnd(NUM),code=MORSE[c],ds=vnShuffle(NUM.filter(x=>x!==c)).slice(0,3).map(x=>MORSE[x]);return{q:'Which code is the number <b>'+c+'</b>?',h:1,o:vnShuffle([code].concat(ds)),a:code,oh:1,e:c+' = '+code+'.'}}]);
+G.push(['tree',()=>{const L=LET.filter(l=>MORSE[l].length<=4&&MORSE[l].length>=2),c=rnd(L);const path=[...MORSE[c]].map(x=>x==='.'?'left (dot)':'right (dash)').join(', then ');
+  return{q:'<b>Morse tree.</b> Start at the top. Go '+path+'. Which letter are you on?',h:1,o:letterOpts(c,L),a:c,e:'Dot = left, dash = right. '+MORSE[c]+' lands on '+c+'.'}}]);
+G.push(['tree',()=>{const c=rnd(LET),n=MORSE[c].length;return{q:'On the Morse tree, which level is <b>'+c+'</b> on? '+sym(MORSE[c]),h:1,o:['1','2','3','4'],a:String(n),e:c+' has '+n+' signal'+(n>1?'s':'')+', so it is on level '+n+'.'}}]);
+G.push(['words',()=>{const w=rnd(WORDS),o=opt4(w,WORDS.filter(x=>x.length===w.length).length>=4?WORDS.filter(x=>x.length===w.length):WORDS);
+  return{q:'What word is this?<br>'+[...w].map(c=>'<span style="display:inline-block;margin:4px 8px">'+sym(MORSE[c])+'</span>').join(''),h:1,o:o,a:w,e:[...w].map(c=>c+' '+MORSE[c]).join(' · ')}}]);
+G.push(['words',()=>{const w=rnd(WORDS.filter(x=>x.length<=5)),code=[...w].map(c=>MORSE[c]).join(' / ');const fake=x=>[...x].map(c=>MORSE[c]).join(' / ');
+  const ds=vnShuffle(WORDS.filter(x=>x!==w&&x.length===w.length)).slice(0,3);if(ds.length<3)return null;
+  return{q:'Which Morse spells <b>'+w+'</b>? (a slash separates letters)',h:1,o:vnShuffle([code].concat(ds.map(fake))),a:code,e:w+' = '+code}}]);
+G.push(['whistle',()=>{const s=rnd(WH_SIG),o=opt4(s.en,WH_SIG.map(x=>x.en));return{q:'You hear the whistle signal <b>'+s.lbl+'</b> ('+[...s.letters].map(c=>syl(MORSE[c])).join(' / ')+'). What does it mean?',h:1,o:o,a:s.en,e:s.lbl+' = '+s.en+' ('+s.vn+'). '+s.todo}}]);
+G.push(['whistle',()=>{const s=rnd(WH_SIG),o=opt4(s.lbl,WH_SIG.map(x=>x.lbl));return{q:'Which whistle signal means “<b>'+s.en+'</b>”?',h:1,o:o,a:s.lbl,e:s.lbl+' = '+s.en+' ('+s.vn+'). '+s.todo}}]);
+G.push(['whistle',()=>{const s=rnd(WH_SIG),o=opt4(s.todo,WH_SIG.map(x=>x.todo));return{q:'You hear <b>'+s.lbl+'</b> ('+s.en+'). What should you do?',h:1,o:o,a:s.todo,e:s.todo}}]);
+
+/* --- hand-written questions: [category, question, right, [wrong x3], explanation] --- */
+const S=[
+['timing','How long is a dash compared to a dot?','3 times as long',['The same length','2 times as long','5 times as long'],'Dot = 1 unit, dash = 3 units.'],
+['timing','How long is the gap between two letters of the same word?','3 units',['1 unit','5 units','7 units'],'Gap inside a letter = 1, between letters = 3, between words = 7.'],
+['timing','How long is the gap between two words?','7 units',['1 unit','3 units','10 units'],'Words are separated by 7 units of silence.'],
+['timing','How long is the gap between the dots and dashes inside one letter?','1 unit',['3 units','7 units','No gap'],'The gap inside a letter is the same length as a dot.'],
+['timing','How many units does the letter A (dot dash) take, counting the gap inside it?','5 units',['3 units','4 units','7 units'],'Dot 1 + gap 1 + dash 3 = 5.'],
+['timing','Which sounds longer: the letter T or the letter E?','T',['E','They are the same','It depends on the speed'],'T is one dash (3 units). E is one dot (1 unit).'],
+['timing','What is the best way to learn Morse quickly?','Listen to the sound of each letter as a rhythm',['Count every dot and dash','Write it all out and memorize the table at once','Learn only the longest letters'],'Learn the sound shape, like a little song, rather than counting.'],
+['timing','Which practice habit helps most?','A few minutes every day',['One long session each month','Only reading, never listening','Only the night before a test'],'Little and often beats a long cram.'],
+['timing','What should you do if you miss a letter while receiving?','Let it go and catch the next one',['Stop and ask them to start over','Guess every letter after it','Give up'],'Do not stop on a mistake; keep listening.'],
+['timing','Which letter pair is a mirror pair (one is the other backwards)?','A and N',['E and T','S and O','H and V'],'A is dot-dash; N is dash-dot. Reading A backwards gives N.'],
+['tricks','Which letters have no opposite partner (swap dots and dashes)?','C, H, V, Z',['A, E, I, O','S, T, M, N','B, D, G, K'],'These four need to be learned on their own.'],
+['tricks','Which letter is the opposite of E?','T',['I','N','A'],'E is one dot; T is one dash.'],
+['tricks','The code for I (dot dot) is opposite to which letter?','M',['A','N','T'],'I is dot-dot; M is dash-dash.'],
+['tricks','Which is a palindrome letter (same read backwards)?','P',['A','F','B'],'P is dot dash dash dot, which reads the same either way.'],
+['tricks','The numbers 1 to 5 start with how many dots?','The number itself (1 = one dot, 5 = five dots)',['Always one dot','Always five dashes','No dots at all'],'1 = ·–––– … 5 = ·····'],
+['tricks','The number 0 is made of …','Five dashes',['Five dots','One dash','Dot and dash alternating'],'0 = –––––. Numbers 6–0 begin with that many dashes.'],
+['tricks','Which three letters should you learn first because they use only one or two signals?','E T I A N M',['Q Z X J','B C D F','R S T L N E'],'E T I A N M are the easiest and already spell many words.'],
+['tricks','What is the code for SOS?','Three dots, three dashes, three dots',['Three dashes, three dots, three dashes','Dot, dash, dot','Five dots'],'SOS is ··· ––– ···, sent without gaps between the letters.'],
+['tree','On the Morse tree, a dot means …','Go left',['Go right','Go up','Stay'],'Dot = left, dash = right.'],
+['tree','On the Morse tree, a dash means …','Go right',['Go left','Go back to the top','Stop'],'Dot = left, dash = right.'],
+['tree','Which two letters sit directly under the top of the tree (level 1)?','E and T',['A and N','I and M','S and O'],'E (dot) goes left, T (dash) goes right.'],
+['tree','How many letters are on the second level of the tree?','4',['2','8','12'],'I, A, N, M.'],
+['tree','How many letters are on the third level of the tree?','8',['4','12','16'],'S, U, R, W, D, K, G, O.'],
+['tree','How many letters are on the fourth level of the tree?','12',['8','16','26'],'H V F L P J B X C Y Z Q.'],
+['tree','Where does the longest letter code in the alphabet end?','Level 4',['Level 2','Level 3','Level 5'],'All letters use at most four signals.'],
+['faith','Why does VEYM teach Morse code?','To build listening, patience, teamwork, and service',['Only for competitions','Because it is the only language the Church uses','To replace prayer'],'Skills like Morse support a Eucharistic life of service and community.'],
+['faith','Morse code uses two signals and silence. In prayer, what is the matching idea?','Short and long prayers, with holy silence between',['Only long prayers matter','Silence is a mistake','Only words count'],'God receives a dot or a dash, and listens for us.'],
+['faith','What is the first step of decoding a signal, and of prayer?','Stop talking and listen',['Speak louder','Look away','Rush ahead'],'Listening is the first step of prayer.'],
+['faith','Which sacrament is the "source and summit" of the Christian life?','The Eucharist',['Baptism','Confirmation','Anointing of the Sick'],'Lumen Gentium 11 and the Catechism (CCC 1324).'],
+['faith','What does "Eucharist" mean in Greek?','Thanksgiving',['Bread','Remembrance','Peace'],'Eucharistia means thanksgiving.'],
+['faith','What do we call a short prayer like “Jesus, I trust in You”?','A short (dot) prayer or aspiration',['A mistake','A Rosary','Only for priests'],'Short prayers count just as much as long ones.'],
+['faith','Which Thiếu Nhi Thánh Thể virtues do we practice with Morse?','Patience and teamwork',['Pride and speed','Silence only','None of these'],'Learning takes patience, sending and receiving takes teamwork.'],
+['faith','What does Morse code teach us about service?','Signals are used to warn, guide, and rescue',['Service is only for leaders','Skills are only for fun','Service is optional'],'A Thiếu Nhi learns skills in order to serve.'],
+['faith','Who is the Word who also speaks in silence at Mass?','Jesus',['The deacon','An angel','Saint Paul'],'At the elevation we are silent, yet everything is communicated.'],
+['faith','In 1 Samuel 3, what does Samuel say when God calls him?','Speak, Lord, for your servant is listening',['Here I go','Who are you?','Leave me alone'],'Samuel models listening, the first step of prayer and of decoding a message.'],
+['faith','On the road to Emmaus, how did the disciples recognize Jesus?','In the breaking of the bread',['By his voice only','By a sign in the sky','By his clothes'],'Luke 24:30-35. A link to the Eucharist.'],
+['faith','What is Jesus called in John 6:35?','The Bread of Life',['The Good Shepherd','The True Vine','The Door'],'"I am the bread of life" (John 6:35).'],
+['faith','Which gesture of the whole Church echoes the dots and dashes of Morse: short and long prayers?','Aspirations and the Rosary',['Only the homily','Only the collection','Only the choir'],'Both short and long prayers rise to God.'],
+['faith','Why do we practice together as a chapter rather than alone?','Sending and receiving need each other, like the Body of Christ',['Because it is easier to cheat','Because leaders insist','It does not matter'],'A message needs a sender and a receiver. We depend on each other.'],
+['faith','What is the name of our movement in Vietnamese?','Thiếu Nhi Thánh Thể',['Thiếu Nhi Thiên Chúa','Hội Thánh Thể','Đoàn Thiếu Sinh'],'Vietnamese Eucharistic Youth Movement (VEYM).'],
+['faith','Which virtue do we grow when we keep practicing a little each day?','Perseverance',['Pride','Impatience','Envy'],'Small, faithful practice grows into skill, like growing in virtue.'],
+['faith','What is the traditional response after the Gospel at Mass?','Praise to you, Lord Jesus Christ',['Thanks be to God','Amen, amen','And with your spirit'],'We answer the Gospel with praise; Thanks be to God follows the other readings.'],
+['faith','What does "Amen" mean?','So be it',['Goodbye','Let us pray','Peace'],'We say Amen to agree and make the prayer our own.'],
+['timing','Which is fastest to send: E or Q?','E',['Q','They are equal','Z'],'E is one dot; Q is dash dash dot dash.'],
+['timing','Which letter has exactly one dot?','E',['I','T','S'],'E = ·, I = ··, S = ···.'],
+['timing','Which letter is a single dash?','T',['M','E','N'],'T = –.'],
+['timing','How many signals are in the letter S?','3 dots',['2 dots','3 dashes','1 dash'],'S = ···, O = –––.'],
+['timing','Which pair is easily confused because they are opposites?','S and O',['E and Q','A and Z','R and Y'],'S = ···, O = –––.'],
+['timing','Which is a good way to remember M?','Two dashes (dah-dah)',['Two dots','Dash-dot','Dot-dash'],'M = ––, the opposite of I = ··.'],
+['viet','In Vietnamese Morse, which letter shows the dấu sắc (á)?','S',['Z','J','Q'],'S = sắc.'],
+['viet','In Vietnamese Morse, which letter shows the dấu hỏi (ả)?','Z',['S','J','X'],'Z = hỏi.'],
+['viet','In Vietnamese Morse, which letter shows the dấu nặng (ạ)?','J',['S','Q','X'],'J = nặng.'],
+['viet','In Vietnamese Morse, which letter shows the dấu huyền (à)?','Q',['Z','J','S'],'Q = huyền.'],
+['viet','In Vietnamese Morse, which letter shows the dấu ngã (ã)?','X',['S','Z','Q'],'X = ngã.'],
+['viet','How do we send Â in Vietnamese Morse?','AA',['AW','A then S','AE'],'Â = AA.'],
+['viet','How do we send Ă in Vietnamese Morse?','AW',['AA','AS','AE'],'Ă = AW.'],
+['viet','How do we send Ơ in Vietnamese Morse?','OW',['OO','OA','OS'],'Ơ = OW.'],
+['viet','How do we send Ư in Vietnamese Morse?','UW',['UU','UO','US'],'Ư = UW.'],
+['viet','Where does the tone letter go in a syllable?','At the end of the syllable',['At the start of the word','After every letter','It is not used'],'We spell the syllable first, then add its tone letter.']
+];
+const POOL_ST=S.map((r,i)=>({id:'s'+i,c:r[0],q:E(r[1]),o:vnShuffle([r[2]].concat(r[3])),a:r[2],e:r[4]}));
+const CATS={all:'Everything',letters:'Letters',tricks:'Tricks (opposites, mirror)',numbers:'Numbers',tree:'Morse tree',words:'Words',timing:'Timing and practice',whistle:'Whistle signals',faith:'Faith and VEYM',viet:'Vietnamese'};
+const bs={n:0,s:0,pool:[],cur:null,ans:false,active:false,N:10};
+const seen=(()=>{try{return JSON.parse(store.get('bankSeen')||'[]')}catch(e){return[]}})();
+const remember=id=>{if(id&&seen.indexOf(id)<0){seen.push(id);if(seen.length>400)seen.shift();store.set('bankSeen',JSON.stringify(seen))}};
+function build(cat,N){
+  const out=[],wantStatic=POOL_ST.filter(q=>cat==='all'||q.c===cat);
+  const gens=G.filter(g=>cat==='all'||g[0]===cat);
+  const fresh=wantStatic.filter(q=>seen.indexOf(q.id)<0),old=wantStatic.filter(q=>seen.indexOf(q.id)>=0);
+  const nGen=gens.length?(wantStatic.length?Math.round(N*(cat==='all'?.4:.4)):N):0;
+  const st=vnShuffle(fresh).concat(vnShuffle(old)).slice(0,N-nGen);
+  st.forEach(q=>out.push(q));
+  let tries=0;const usedQ=new Set(out.map(q=>q.q));
+  while(out.length<N&&gens.length&&tries++<200){
+    const g=rnd(gens)[1];let q;try{q=g()}catch(e){q=null}
+    if(!q||usedQ.has(q.q))continue;usedQ.add(q.q);out.push(q);
+  }
+  if(cat==='viet'||cat==='all'){
+    const vp=vnShuffle(vnBuildPool()).slice(0,cat==='viet'?Math.ceil(N/2):2);
+    vp.forEach(q=>{if(!usedQ.has(q.q)){out.splice(Math.floor(Math.random()*out.length),1,{c:'viet',q:E(q.q),o:q.o,a:q.a,e:q.e})}});
+  }
+  return vnShuffle(out).slice(0,N);
+}
+function nextQ(){
+  if(bs.n>=bs.N){bs.active=false;$('#bkBox').innerHTML='<b>Round complete!</b> Score: '+bs.s+' / '+bs.N+'. '+(bs.s>=Math.ceil(bs.N*.8)?'Excellent work! Try a different topic.':'Good effort. Review the topic and try again.');$('#bkOpts').innerHTML='';$('#bkFb').textContent='';$('#bkNext').classList.add('hidden');return}
+  bs.cur=bs.pool[bs.n];bs.n++;bs.ans=false;$('#bkN').textContent=bs.n;$('#bkBox').innerHTML=bs.cur.q;$('#bkFb').textContent='';$('#bkNext').classList.add('hidden');
+  $('#bkOpts').innerHTML=bs.cur.o.map((o,i)=>'<button class="'+(bs.cur.oh?'':'txt')+'" data-c="'+(o===bs.cur.a?1:0)+'">'+(bs.cur.oh?sym(o):E(o))+'</button>').join('');
+}
+function start(){bs.pool=build($('#bkCat').value,bs.N);bs.N=bs.pool.length;bs.n=0;bs.s=0;bs.active=true;$('#bkS').textContent=0;$('#bkT').textContent=bs.N;nextQ()}
+const sec=document.createElement('div');sec.className='sub';sec.id='sub-bank';
+sec.innerHTML='<div class="card"><h3>Question Bank</h3><p>Hundreds of different questions. Pick a topic and answer 10. Questions you have not seen yet come first.</p>'+
+'<div class="row"><label>Topic: <select id="bkCat">'+Object.keys(CATS).map(k=>'<option value="'+k+'">'+CATS[k]+'</option>').join('')+'</select></label> <label>Length: <select id="bkLen"><option value="10">10 questions</option><option value="20">20 questions</option><option value="5">5 questions</option></select></label></div>'+
+'<div class="stats"><span>Question: <span id="bkN">0</span>/<span id="bkT">10</span></span><span>Score: <span id="bkS">0</span></span></div>'+
+'<div class="qbox" id="bkBox">Pick a topic and press Start.</div><div class="opts" id="bkOpts"></div><div class="fb" id="bkFb"></div>'+
+'<div class="row"><button class="btn" id="bkStart">Start / restart</button><button class="btn hidden" id="bkNext">Next &rarr;</button></div></div>';
+const anchor=$('#sub-tapkey');anchor.parentNode.insertBefore(sec,anchor);
+const tabs=document.querySelector('.subtabs'),b=document.createElement('button');b.dataset.sub='bank';b.setAttribute('aria-selected','false');b.textContent='Question Bank';
+const vb=tabs.querySelector('[data-sub=vnq]');vb.parentNode.insertBefore(b,vb.nextSibling);
+$('#bkStart').onclick=()=>{bs.N=+$('#bkLen').value;start()};
+$('#bkNext').onclick=nextQ;
+$('#bkOpts').addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t||bs.ans||!bs.active)return;bs.ans=true;
+  const ok=t.dataset.c==='1';if(ok)bs.s++;$('#bkS').textContent=bs.s;remember(bs.cur.id);
+  $$('#bkOpts button').forEach(x=>{x.disabled=true;if(x.dataset.c==='1')x.classList.add('right')});if(!ok)t.classList.add('wrong');
+  $('#bkFb').innerHTML=(ok?'<span style="color:var(--ok)">&#10004; Correct! ':'<span style="color:var(--bad)">Not quite. ')+E(bs.cur.e||'')+'</span>';
+  $('#bkNext').classList.remove('hidden');$('#bkNext').textContent=bs.n>=bs.N?'See results':'Next →';
+});
+window.__bankCount=()=>POOL_ST.length+G.length;
+})();
+
+
+/* ===== TREE CLIMB (interactive tree activity) ===== */
+(function(){
+const E=vnEsc,ns='http://www.w3.org/2000/svg';
+const W=960,H=366,X0=20,X1=940,dy=74,y0=34;
+const nodePos=c=>{const L=c.length,n=Math.pow(2,L);let i=0;for(const ch of c)i=i*2+(ch==='-'?1:0);return{x:X0+(i+.5)*(X1-X0)/n,y:y0+L*dy}};
+const hasNode=c=>c===''||(REV[c]&&/^[A-Z]$/.test(REV[c])&&c.length<=4);
+const sec=document.createElement('div');sec.className='sub';sec.id='sub-tree';
+sec.innerHTML='<div class="card"><h3>Tree Climb</h3><p>Use the Morse tree to answer. Start at the top. A <b>dot</b> goes <b>left</b>, a <b>dash</b> goes <b>right</b>. Build the path with the two big buttons, then press <b>Check</b>.</p>'+
+'<div class="row"><label>Mode: <select id="tcMode"><option value="find">Find the letter on the tree</option><option value="ear">Listen, then climb</option><option value="read">Read the code, name the letter</option></select></label> <label class="chk"><input type="checkbox" id="tcHide"> Challenge: hide the letters</label></div>'+
+'<div class="stats"><span>Question: <span id="tcN">0</span>/10</span><span>Score: <span id="tcS">0</span></span></div>'+
+'<div class="qbox" id="tcQ">Press Start to begin.</div>'+
+'<div class="treewrap tcwrap"><svg id="tcSvg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Morse tree. Your path is highlighted."></svg></div>'+
+'<div class="row tcpath"><b>Your path:</b> <span id="tcPath" class="sym"></span> <span id="tcNow"></span></div>'+
+'<div class="row tcbtns"><button class="btn tcdot" id="tcDot">&#9679; DOT<small>go left</small></button><button class="btn tcdash" id="tcDash">&#9644; DASH<small>go right</small></button></div>'+
+'<div class="row"><button class="btn ghost" id="tcBack">&#8630; Back one</button><button class="btn ghost" id="tcReset">Start over</button><button class="btn alt hidden" id="tcPlay">&#128266; Hear it again</button><button class="btn" id="tcCheck">Check</button><button class="btn ghost" id="tcHint">Hint</button></div>'+
+'<div class="fb" id="tcFb"></div>'+
+'<div class="row"><button class="btn" id="tcStart">Start / restart</button><button class="btn hidden" id="tcNext">Next &rarr;</button></div></div>';
+const anchor=$('#sub-tapkey');anchor.parentNode.insertBefore(sec,anchor);
+const tabs=document.querySelector('.subtabs'),b=document.createElement('button');b.dataset.sub='tree';b.setAttribute('aria-selected','false');b.textContent='Tree Climb';
+const ref=tabs.querySelector('[data-sub=bank]')||tabs.querySelector('[data-sub=vnq]');ref.parentNode.insertBefore(b,ref.nextSibling);
+const svg=$('#tcSvg');
+const el=(n,a,p)=>{const e=document.createElementNS(ns,n);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e};
+const nodes={};
+function draw(){
+  svg.innerHTML='';
+  const all=[''].concat(LET.filter(l=>MORSE[l].length<=4).map(l=>MORSE[l]));
+  all.forEach(c=>{if(!c)return;const p=nodePos(c),q=nodePos(c.slice(0,-1));el('line',{x1:q.x,y1:q.y,x2:p.x,y2:p.y,class:'tce','data-e':c})});
+  el('text',{x:X0,y:20,class:'tclb'}).textContent='START';
+  all.forEach(c=>{const p=nodePos(c),g=el('g',{class:'tcn','data-c':c,transform:'translate('+p.x+','+p.y+')'});
+    el('circle',{r:c.length===4?15:c===''?10:19},g);
+    if(c){const t=el('text',{y:6,'text-anchor':'middle',class:'tcl'},g);t.textContent=REV[c];}
+    nodes[c]=g});
+  [1,2,3,4].forEach(L=>{});
+}
+draw();
+const st={n:0,s:0,target:null,mode:'find',path:'',locked:false,active:false,hint:0};
+const syms=c=>c?sym(c):'';
+function show(){
+  $$('.tce').forEach(e=>e.classList.toggle('on',st.path.indexOf(e.dataset.e)===0&&e.dataset.e.length<=st.path.length));
+  Object.keys(nodes).forEach(c=>{const g=nodes[c];g.classList.toggle('on',st.path.indexOf(c)===0&&c.length<=st.path.length);g.classList.toggle('cur',c===st.path)});
+  svg.classList.toggle('hide',$('#tcHide').checked);
+  $('#tcPath').innerHTML=syms(st.path);
+  centerView();
+  $('#tcNow').textContent=st.path&&!$('#tcHide').checked?'You are on: '+REV[st.path]:(st.path?'':'You are at the top.');
+}
+function centerView(){const w=svg.parentNode,p=nodePos(st.path),k=svg.getBoundingClientRect().width/W;w.scrollLeft=Math.max(0,p.x*k-w.clientWidth/2)}
+function step(ch){
+  if(!st.active||st.locked)return;
+  const n=st.path+ch;
+  if(!hasNode(n)){$('#tcFb').innerHTML='<span style="color:var(--bad)">No letter that way. Go back or check your path.</span>';return}
+  st.path=n;$('#tcFb').textContent='';show();
+}
+$('#tcDot').onclick=()=>step('.');$('#tcDash').onclick=()=>step('-');
+$('#tcBack').onclick=()=>{if(st.locked)return;st.path=st.path.slice(0,-1);show()};
+$('#tcReset').onclick=()=>{if(st.locked)return;st.path='';$('#tcFb').textContent='';show()};
+$('#tcHint').onclick=()=>{if(!st.active||st.locked||!st.target)return;const code=MORSE[st.target];
+  if(code.indexOf(st.path)!==0){$('#tcFb').innerHTML='Your path left the right branch. Go back to where it still matches.';return}
+  const nx=code[st.path.length];if(!nx){$('#tcFb').textContent='You are on the letter. Press Check.';return}
+  st.hint++;$('#tcFb').innerHTML='Hint: the next step is a <b>'+(nx==='.'?'dot (go left)':'dash (go right)')+'</b>.'};
+$('#tcPlay').onclick=()=>{if(st.target)playCode(MORSE[st.target])};
+$('#tcHide').onchange=show;
+$('#tcMode').onchange=()=>{$('#tcQ').textContent='Press Start to begin.'};
+function ask(){
+  if(st.n>=10){st.active=false;$('#tcQ').innerHTML='<b>Round complete!</b> Score: '+st.s+' / 10. '+(st.s>=8?'Excellent. You can climb the tree.':'Keep practicing. Try the hint less each round.');$('#tcNext').classList.add('hidden');$('#tcFb').textContent='';return}
+  st.n++;st.locked=false;st.path='';st.hint=0;$('#tcN').textContent=st.n;$('#tcFb').textContent='';$('#tcNext').classList.add('hidden');$('#tcCheck').disabled=false;
+  const pool=LET.filter(l=>MORSE[l].length<=4);let c;do{c=pool[Math.floor(Math.random()*pool.length)]}while(c===st.target&&pool.length>1);
+  st.target=c;window.__tcTarget=c;st.mode=$('#tcMode').value;
+  const q=$('#tcQ');$('#tcPlay').classList.toggle('hidden',st.mode!=='ear');
+  if(st.mode==='find')q.innerHTML='Find the letter <b style="font-size:1.6em;color:var(--burg-d)">'+c+'</b> on the tree. Build its path from the top.';
+  else if(st.mode==='ear'){q.innerHTML='Listen. Then climb the tree for the letter you hear. Press <b>Hear it again</b> as often as you like.';setTimeout(()=>playCode(MORSE[c]),300)}
+  else q.innerHTML='This is the code: '+sym(MORSE[c])+'<br>Climb the tree with these steps. Which letter do you land on?';
+  show();
+}
+$('#tcStart').onclick=()=>{st.n=0;st.s=0;st.target=null;st.active=true;$('#tcS').textContent=0;ask()};
+$('#tcNext').onclick=ask;
+$('#tcCheck').onclick=()=>{
+  if(!st.active||st.locked)return;
+  if(!st.path){$('#tcFb').textContent='Build a path first.';return}
+  st.locked=true;$('#tcCheck').disabled=true;
+  const ok=st.path===MORSE[st.target],landed=REV[st.path];
+  let msg;
+  if(st.mode==='read')msg=ok?'Correct! You landed on <b>'+st.target+'</b>.':'Not quite. The code was '+sym(MORSE[st.target])+', which lands on <b>'+st.target+'</b>. You landed on '+landed+'.';
+  else msg=ok?'Correct! '+st.target+' = '+sym(MORSE[st.target])+' ('+syl(MORSE[st.target])+').':'Not quite. You landed on <b>'+landed+'</b>. '+st.target+' = '+sym(MORSE[st.target])+' ('+syl(MORSE[st.target])+').';
+  if(ok&&st.hint<2)st.s++;else if(ok){msg+=' (Hints used, so no point this time.)'}
+  $('#tcS').textContent=st.s;
+  $('#tcFb').innerHTML='<span style="color:var(--'+(ok?'ok':'bad')+')">'+(ok?'&#10004; ':'')+msg+'</span>';
+  st.path=MORSE[st.target];svg.classList.remove('hide');show();
+  $('#tcNext').classList.remove('hidden');$('#tcNext').textContent=st.n>=10?'See results':'Next →';
+};
+})();
+
+
+/* ===== HIGH SCHOOL MODE: Speed Trainer, Cipher Challenge, Lead & Teach ===== */
+(function(){
+const E=vnEsc,rnd=a=>a[Math.floor(Math.random()*a.length)];
+const anchor=$('#sub-tapkey'),tabs=document.querySelector('.subtabs');
+function addSub(id,label,html){
+  const s=document.createElement('div');s.className='sub';s.id='sub-'+id;s.innerHTML='<div class="card hs">'+html+'</div>';anchor.parentNode.insertBefore(s,anchor);
+  const b=document.createElement('button');b.dataset.sub=id;b.setAttribute('aria-selected','false');b.innerHTML=label;tabs.appendChild(b);
+}
+const lev=(a,b)=>{const m=a.length,n=b.length;let d=[...Array(n+1).keys()];for(let i=1;i<=m;i++){let p=d[0];d[0]=i;for(let j=1;j<=n;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return d[n]};
+const acc=(t,a)=>t.length?Math.max(0,1-lev(t,a)/t.length):0;
+const compact=s=>String(s).toUpperCase().replace(/[^A-Z0-9]/g,'');
+/* timed audio: wpm sets dot length, f stretches the gaps (Farnsworth) */
+function sendText(text,wpm,f){
+  const ev=[];text.split(/\s+/).filter(Boolean).forEach((w,wi)=>{
+    if(wi>0)ev.push([0,7*f]);[...w].filter(c=>MORSE[c]).forEach((c,ci)=>{if(ci>0)ev.push([0,3*f]);ev.push(...eventsFromCode(MORSE[c]))})});
+  const old=state.wpm;state.wpm=wpm;try{play(ev)}finally{state.wpm=old}
+}
+const groups=(txt)=>txt.split(/\s+/).filter(Boolean).map(w=>'<span style="display:inline-block;margin:4px 10px">'+[...w].map(c=>MORSE[c]?'<span style="display:inline-block;margin:0 4px 4px 0">'+sym(MORSE[c])+'</span>':'').join('')+'</span>').join('<br>');
+
+/* ---------- SPEED TRAINER ---------- */
+const WL=['GOD','LORD','AMEN','FAITH','GRACE','PEACE','LOVE','MERCY','HOLY','MASS','PRAY','TRUST','SERVE','SHARE','LIGHT','TRUTH','HOPE','JOY','BREAD','WINE','CROSS','SAINT','ANGEL','SPIRIT','PRIEST','ROSARY','BLESSED','DISCIPLE','COMMUNION','CHURCH','SIGNAL','MESSAGE','CAMP','TEAM','LEADER','WHISTLE','RELAY','PATROL','CHAPTER','SERVICE','COURAGE','LISTEN','SILENCE','MARY','JOSEPH','PETER','PAUL','JOHN','LUKE','EUCHARIST'];
+const LT='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const gen={
+  words:()=>{let n=1+Math.floor(Math.random()*2),o=[];for(let i=0;i<n;i++)o.push(rnd(WL));return o.join(' ')},
+  groups:()=>{const g=()=>[...Array(5)].map(()=>rnd(LT)).join('');return g()+' '+g()},
+  nums:()=>{const g=()=>[...Array(4)].map(()=>rnd('0123456789')).join('');return g()+' '+g()},
+  mixed:()=>{const g=()=>[...Array(5)].map(()=>rnd(LT+'0123456789')).join('');return g()+' '+g()},
+  viet:()=>{const w=['Chúa','Thể','Mẹ','Bình','Yêu','Ơn','Lạy','Giêsu','Maria','Thánh','Tạ','Ơn','Vâng','Thiếu','Nhi','Hòa','Cha','Con'];const o=[];for(let i=0;i<2;i++)o.push(encodeVN(rnd(w)).telex);return o.join(' ')}
+};
+addSub('speed','Speed Trainer',
+'<h3>Speed Trainer</h3><p>Real receiving practice. A message is sent at the speed you pick. Listen, type what you heard, and check. Nothing is shown on screen while it plays, so you copy by ear. Speed is in <b>words per minute (WPM)</b>.</p>'+
+'<div class="row"><label>Speed: <select id="spW"></select></label> <label>Extra spacing: <select id="spF"><option value="1">None (full speed)</option><option value="2" selected>2x space between letters</option><option value="3">3x space between letters</option></select></label></div>'+
+'<div class="row"><label>Content: <select id="spC"><option value="words">Faith and camp words</option><option value="groups">Random letters</option><option value="nums">Numbers</option><option value="mixed">Letters and numbers</option><option value="viet">Vietnamese (Telex letters)</option></select></label> <label class="chk"><input type="checkbox" id="spAuto" checked> Raise my speed when I do well</label></div>'+
+'<div class="stats"><span>Rounds: <span id="spN">0</span></span><span>Average accuracy: <span id="spA">0</span>%</span><span>Best (90%+): <span id="spB">0</span> WPM</span></div>'+
+'<div class="qbox" id="spBox">Press <b>Send</b>, then type what you hear.</div>'+
+'<input type="text" id="spIn" placeholder="Type what you heard" autocomplete="off" autocapitalize="characters" spellcheck="false">'+
+'<div class="row"><button class="btn" id="spSend">&#128266; Send</button><button class="btn alt" id="spCheck">Check</button><button class="btn ghost" id="spAgain">Replay</button></div>'+
+'<div class="fb" id="spFb"></div>'+
+'<p style="color:var(--muted)">Tip: "Extra spacing" keeps each letter at full speed but gives you more thinking time between letters. This is how many radio operators learn. Lower the spacing as you improve.</p>');
+const spW=$('#spW');[5,8,10,12,15,18,20,25].forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent=w+' WPM';spW.appendChild(o)});spW.value=8;
+const sp={cur:'',n:0,sum:0,best:+(store.get('hsBest')||0),hot:0,sent:false};
+$('#spB').textContent=sp.best;
+function spSend(){const m=gen[$('#spC').value]();sp.cur=m;sp.sent=true;$('#spIn').value='';$('#spFb').textContent='';$('#spBox').innerHTML='<div class="big">&#128266; Listening&hellip;</div>';sendText(m,+spW.value,+$('#spF').value);setTimeout(()=>$('#spIn').focus(),200)}
+$('#spSend').onclick=spSend;
+$('#spAgain').onclick=()=>{if(sp.cur)sendText(sp.cur,+spW.value,+$('#spF').value)};
+$('#spCheck').onclick=()=>{
+  if(!sp.cur||!sp.sent){$('#spFb').textContent='Press Send first.';return}
+  const a=acc(compact(sp.cur),compact($('#spIn').value));sp.n++;sp.sum+=a;sp.sent=false;
+  const pct=Math.round(a*100),w=+spW.value;
+  $('#spN').textContent=sp.n;$('#spA').textContent=Math.round(sp.sum/sp.n*100);
+  if(a>=.9&&w>sp.best){sp.best=w;store.set('hsBest',String(w));$('#spB').textContent=w}
+  let note='';const L=[5,8,10,12,15,18,20,25],i=L.indexOf(w);
+  if(a>=.9)sp.hot++;else sp.hot=0;
+  if($('#spAuto').checked){
+    if(sp.hot>=2&&i<L.length-1){spW.value=L[i+1];sp.hot=0;note=' Two clean rounds in a row. Speed up to '+L[i+1]+' WPM.'}
+    else if(a<.6&&i>0){spW.value=L[i-1];sp.hot=0;note=' Dropping back to '+L[i-1]+' WPM so you can build it up again.'}
+  }
+  $('#spBox').innerHTML='<div>Sent: <b>'+E(sp.cur)+'</b></div>'+groups(sp.cur);
+  $('#spFb').innerHTML='<span style="color:var(--'+(a>=.9?'ok':'bad')+')">'+(a>=.9?'&#10004; ':'')+pct+'% correct.</span>'+note+' Press Send for the next one.';
+};
+$('#spIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#spCheck').click()});
+
+/* ---------- CIPHER CHALLENGE ---------- */
+const V=[['ASK AND IT WILL BE GIVEN YOU','Luke 11:9'],['THE TRUTH WILL SET YOU FREE','John 8:32'],['BE STILL AND KNOW THAT I AM GOD','Psalm 46'],['WITH GOD ALL THINGS ARE POSSIBLE','Matthew 19:26'],['THE LORD IS MY LIGHT AND MY SALVATION','Psalm 27:1'],['LOVE IS PATIENT LOVE IS KIND','1 Corinthians 13:4'],['FAITH WITHOUT WORKS IS DEAD','James 2:26'],['TASTE AND SEE THAT THE LORD IS GOOD','Psalm 34'],['I AM WITH YOU ALWAYS','Matthew 28:20'],['COME TO ME ALL WHO LABOR','Matthew 11:28'],['WHERE TWO OR THREE ARE GATHERED','Matthew 18:20'],['GO AND MAKE DISCIPLES','Matthew 28:19'],['I AM THE BREAD OF LIFE','John 6:35'],['PRAY ALWAYS','1 Thessalonians 5:17'],['DO THIS IN MEMORY OF ME','Luke 22:19'],['LET THE CHILDREN COME TO ME','Mark 10:14'],['FEED MY SHEEP','John 21:17'],['LOVE ONE ANOTHER','John 13:34'],['BLESSED ARE THE PURE IN HEART','Matthew 5:8'],['YOU ARE THE LIGHT OF THE WORLD','Matthew 5:14']];
+addSub('cipher','Cipher Challenge',
+'<h3>Cipher Challenge</h3><p>Hidden verses with a twist. Decode the Morse, then solve the twist. Faster and with fewer hints earns more points. Check each reference against your approved Catholic Bible translation.</p>'+
+'<div class="row"><label>Level: <select id="ciL"><option value="1">1. Plain verse</option><option value="2">2. No gaps between words</option><option value="3">3. Sent backwards</option><option value="4">4. Shifted letters (Caesar cipher)</option></select></label></div>'+
+'<div class="stats"><span>Solved: <span id="ciN">0</span></span><span>Points: <span id="ciS">0</span></span></div>'+
+'<div class="qbox" id="ciBox" style="min-height:120px">Press New puzzle.</div><p id="ciRule" style="color:var(--muted);font-style:italic"></p>'+
+'<input type="text" id="ciIn" placeholder="Type the verse here" autocomplete="off" autocapitalize="characters" spellcheck="false">'+
+'<div class="row"><button class="btn" id="ciCheck">Check</button><button class="btn alt" id="ciPlay">&#128266; Play</button><button class="btn ghost" id="ciHint">Hint</button><button class="btn ghost" id="ciNew">New puzzle</button></div><div class="fb" id="ciFb"></div>'+
+'<details style="margin-top:10px"><summary><b>How the twists work</b></summary><ul><li><b>No gaps:</b> the letters run together. Find the word breaks yourself.</li><li><b>Backwards:</b> the whole message was sent from the last letter to the first. Decode, then read it from the end.</li><li><b>Shifted:</b> every letter was moved forward in the alphabet by the shift shown (A to B is a shift of 1). Decode the Morse, then move each letter <b>back</b> by that many places.</li></ul></details>');
+const ci={v:null,L:1,sh:0,cipher:'',hints:0,t0:0,n:0,s:0,done:true};
+const shift=(t,n)=>[...t].map(c=>/[A-Z]/.test(c)?String.fromCharCode((c.charCodeAt(0)-65+n+26)%26+65):c).join('');
+function ciNew(){
+  ci.v=rnd(V);ci.L=+$('#ciL').value;ci.sh=ci.L===4?1+Math.floor(Math.random()*5):0;ci.hints=0;ci.done=false;ci.t0=Date.now();
+  let t=ci.v[0];
+  if(ci.L===3)t=[...t].reverse().join('');
+  if(ci.L===4)t=shift(t,ci.sh);
+  if(ci.L===2)t=t.replace(/ /g,'');
+  ci.cipher=t;
+  $('#ciBox').innerHTML=groups(t);$('#ciIn').value='';$('#ciFb').textContent='';
+  $('#ciRule').textContent=ci.L===1?'Decode each letter with the tree or your chart.':ci.L===2?'The words run together. Find the breaks.':ci.L===3?'This message was sent backwards. Read it from the end.':'Every letter is shifted forward by '+ci.sh+'. Move each decoded letter back by '+ci.sh+'.';
+}
+$('#ciNew').onclick=ciNew;$('#ciL').onchange=ciNew;
+$('#ciPlay').onclick=()=>{if(ci.cipher)say(ci.L===2?ci.cipher.replace(/ /g,''):ci.cipher)};
+$('#ciHint').onclick=()=>{
+  if(!ci.v||ci.done)return;ci.hints++;const w=ci.v[0].split(' ');
+  $('#ciFb').innerHTML=ci.hints===1?'Hint 1: the verse has <b>'+w.length+' words</b> and '+compact(ci.v[0]).length+' letters.':'Hint 2: the first word is <b>'+w[0]+'</b>.';
+  if(ci.hints>2)$('#ciFb').innerHTML='Hint 3: the reference is <b>'+ci.v[1]+'</b>.';
+};
+$('#ciCheck').onclick=()=>{
+  if(!ci.v||ci.done){$('#ciFb').textContent='Press New puzzle.';return}
+  if(compact($('#ciIn').value)===compact(ci.v[0])){
+    const sec=Math.round((Date.now()-ci.t0)/1000),pts=Math.max(10,100*ci.L-25*ci.hints-Math.floor(sec/10)*5);
+    ci.done=true;ci.n++;ci.s+=pts;$('#ciN').textContent=ci.n;$('#ciS').textContent=ci.s;
+    $('#ciFb').innerHTML='<span style="color:var(--ok)">&#10004; Solved in '+sec+' seconds with '+ci.hints+' hint'+(ci.hints===1?'':'s')+'. <b>'+pts+' points.</b> "'+E(ci.v[0])+'" ('+E(ci.v[1])+')</span>';
+  }else $('#ciFb').innerHTML='<span style="color:var(--bad)">Not yet. Check your letters, then the twist.</span>';
+};
+$('#ciIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#ciCheck').click()});
+
+/* ---------- LEAD AND TEACH ---------- */
+const CK=['I can send my full name in Morse without the chart','I know every whistle signal and what to do for each','I can receive a short message at 10 WPM','I can lead a call-and-response whistle drill','I can explain the Morse tree to a younger student in under two minutes','I know why we learn this and can say it in my own words'];
+addSub('lead','Lead &amp; Teach',
+'<h3>Lead &amp; Teach</h3><p>Morse is a skill you can use and pass on. This page is for older students who are ready to lead.</p>'+
+'<h4>Where Morse is still used</h4><ul>'+
+'<li><b>Ham radio.</b> Amateur radio operators still send Morse (called CW) and many love it because it works with weak signals and simple equipment.</li>'+
+'<li><b>Navigation beacons.</b> Many aviation radio beacons identify themselves with a short Morse code, and pilots check it to confirm the right station.</li>'+
+'<li><b>Accessibility.</b> Morse can be a way to type for people who can only use one or two switches or taps. Some phone keyboards include a Morse option.</li>'+
+'<li><b>Signaling without a radio.</b> Flashlight, mirror, whistle, and tap signals work when phones and batteries do not. That is why camps, scouting, and sailing still teach it.</li>'+
+'<li><b>SOS.</b> The most recognized distress signal in the world, three short, three long, three short.</li></ul>'+
+'<h4>Teach it forward: a 20-minute mini lesson</h4><ol>'+
+'<li><b>Pray and hook (2 min).</b> Hold up a hidden message and ask who can crack it.</li>'+
+'<li><b>Why (2 min).</b> Say in your own words why you learned Morse. Ask them why they think it matters.</li>'+
+'<li><b>E T I A N M (5 min).</b> Say it as sounds first (dit, dah), then show the tree. Dot left, dash right.</li>'+
+'<li><b>Phones (4 min).</b> Pair them up. One taps a letter, the partner names it.</li>'+
+'<li><b>Whistle (5 min).</b> Teach the get-ready signal and finish signal, then send a short word and have them write it.</li>'+
+'<li><b>Close (2 min).</b> Recap one thing and pray.</li></ol>'+
+'<p style="color:var(--muted)">Keep it slow and short. Praise effort. Let them succeed before you speed up.</p>'+
+'<h4>Relay challenge (team game)</h4><ol>'+
+'<li>Make teams of 4 in a line across the room. The first player gets a secret message from the leader.</li>'+
+'<li>Player 1 sends it to Player 2 with the whistle (or a flashlight or a tap) using the full signal: get-ready, message, finish.</li>'+
+'<li>Player 2 replies with <b>R</b> when understood, writes it, and sends it to Player 3, and so on.</li>'+
+'<li>The last player reads it aloud. Score points for accuracy, then for speed. A sent <b>HH</b> (error) means cross out and resend.</li></ol>'+
+'<h4>Leader checklist</h4><div id="ldCk"></div>'+
+'<h4>Why this matters for a Eucharistic life</h4><p>Receiving a signal means being quiet first. Sending one means being clear and patient. Leading younger kids means serving them. These are the same habits we bring to Mass, to prayer, and to the people around us.</p>');
+const cs=(()=>{try{return JSON.parse(store.get('hsCheck')||'[]')}catch(e){return[]}})();
+$('#ldCk').innerHTML=CK.map((t,i)=>'<label class="chk" style="display:block;margin:6px 0"><input type="checkbox" data-i="'+i+'"'+(cs[i]?' checked':'')+'> '+E(t)+'</label>').join('');
+$('#ldCk').addEventListener('change',e=>{const i=e.target.dataset.i;if(i==null)return;cs[i]=e.target.checked;store.set('hsCheck',JSON.stringify(cs))});
+})();
+
+
+/* ===== MORSE CHARADE (team game) ===== */
+(function(){
+const E=vnEsc,rnd=a=>a[Math.floor(Math.random()*a.length)];
+const W=960,H=366,X0=20,X1=940,dy=74,y0=34,ns='http://www.w3.org/2000/svg';
+const nodePos=c=>{const L=c.length,n=Math.pow(2,L);let i=0;for(const ch of c)i=i*2+(ch==='-'?1:0);return{x:X0+(i+.5)*(X1-X0)/n,y:y0+L*dy}};
+const hasNode=c=>c===''||(REV[c]&&/^[A-Z]$/.test(REV[c])&&c.length<=4);
+const SETS={
+ easy:['GOD','AMEN','LOVE','PRAY','HOPE','FAITH','PEACE','JOY','MASS','BREAD','WINE','LIGHT','CROSS','SAINT','ANGEL','MARY','HOLY','GRACE','TRUST','MERCY','JESUS','PRIEST','ALTAR','SERVE'],
+ faith:['HAIL MARY','OUR FATHER','HOLY SPIRIT','SIGN OF THE CROSS','GOOD SHEPHERD','BREAD OF LIFE','LAMB OF GOD','HOLY COMMUNION','ALTAR SERVER','DIVINE MERCY','GOD IS LOVE','PRAY ALWAYS','LOVE ONE ANOTHER','THANKS BE TO GOD','PEACE BE WITH YOU','LIGHT OF THE WORLD','ROSARY BEADS','GUARDIAN ANGEL'],
+ veym:['WHISTLE SIGNAL','TEAM WORK','CAMP FIRE','SERVE OTHERS','LISTEN CAREFULLY','BE READY','CHAPTER MEETING','FIELD GAME','HELP EACH OTHER','THIEU NHI THANH THE','FLASHLIGHT','MESSAGE SENT','SAFE JOURNEY','BE A LEADER'],
+ verse:['I AM THE BREAD OF LIFE','LOVE YOUR ENEMIES','FEED MY SHEEP','LET THE CHILDREN COME TO ME','THE LORD IS MY SHEPHERD','DO THIS IN MEMORY OF ME','STAY WITH US LORD','BE STILL AND KNOW THAT I AM GOD','COME TO ME ALL WHO LABOR','GO AND MAKE DISCIPLES'],
+ viet:['Lạy Chúa','Mẹ Maria','Thánh Thể','Bình an','Tạ ơn Chúa','Yêu thương','Giêsu','Chúa Thánh Thần','Thiếu Nhi','Vâng lời','Hiệp thông','Lòng thương xót','Ơn Chúa','Sống đạo']
+};
+SETS.mix=[].concat(SETS.easy,SETS.faith,SETS.veym);
+const NAMES={easy:'Easy words',faith:'Faith phrases',veym:'VEYM and camp',verse:'Scripture verses (hard)',viet:'Vietnamese (Telex letters)',mix:'Mixed (easy, faith, VEYM)'};
+function item(set){
+  const raw=rnd(SETS[set]);
+  if(set==='viet'){const t=encodeVN(raw).telex;return{show:raw,send:t,guide:t}}
+  return{show:raw,send:raw,guide:''};
+}
+const sec=document.createElement('div');sec.className='sub';sec.id='sub-charade';
+sec.innerHTML='<div class="card hs"><div id="cg"></div></div>';
+const anchor=$('#sub-tapkey');anchor.parentNode.insertBefore(sec,anchor);
+const tabs=document.querySelector('.subtabs'),bt=document.createElement('button');bt.dataset.sub='charade';bt.setAttribute('aria-selected','false');bt.textContent='Morse Charade';tabs.appendChild(bt);
+const root=$('#cg');
+const g={teams:[{n:'Team A',s:0},{n:'Team B',s:0}],turn:0,total:6,set:'mix',secs:180,paused:false,skips:2,cur:null,seq:[],pos:0,path:'',t:0,iv:null,phase:'setup',hide:false,done:false};
+window.__cg=g;
+const PRE=[['No timer',0],['1 minute',60],['1 minute 30 seconds',90],['2 minutes',120],['3 minutes',180],['4 minutes',240],['5 minutes',300],['10 minutes',600],['Custom time...',-1]];
+const inPre=()=>PRE.some(p=>p[1]===g.secs);
+const team=()=>g.teams[g.turn%2],other=()=>g.teams[(g.turn+1)%2];
+const score=()=>'<div class="cgscore"><span class="'+(g.turn%2===0&&g.phase!=='setup'&&g.phase!=='end'?'on':'')+'"><b>'+E(g.teams[0].n)+'</b> '+g.teams[0].s+'</span><span class="'+(g.turn%2===1&&g.phase!=='setup'&&g.phase!=='end'?'on':'')+'"><b>'+E(g.teams[1].n)+'</b> '+g.teams[1].s+'</span></div>';
+function stopTimer(){if(g.iv){clearInterval(g.iv);g.iv=null}}
+function render(){
+  if(g.phase==='setup')setup();else if(g.phase==='ready')ready();else if(g.phase==='play')play();else if(g.phase==='timeup')timeup();else if(g.phase==='end')endGame();
+}
+function setup(){
+  stopTimer();
+  root.innerHTML='<h3>Morse Charade</h3><p>Two teams. One player at a time becomes the <b>sender</b>. They see a secret word or phrase and a Morse tree on the same screen. They must climb the tree to each letter and send its sound from the device. Teammates listen and guess the word. The sender cannot speak, point, or show the screen.</p>'+
+  '<div class="row"><label>Team 1: <input type="text" id="cgN0" value="'+E(g.teams[0].n)+'" maxlength="18" style="width:11em"></label> <label>Team 2: <input type="text" id="cgN1" value="'+E(g.teams[1].n)+'" maxlength="18" style="width:11em"></label></div>'+
+  '<div class="row"><label>Words: <select id="cgSet">'+Object.keys(NAMES).map(k=>'<option value="'+k+'"'+(g.set===k?' selected':'')+'>'+NAMES[k]+'</option>').join('')+'</select></label> <label>Time per turn: <select id="cgSecs">'+PRE.map(p=>'<option value="'+p[1]+'"'+((inPre()?g.secs===p[1]:p[1]===-1)?' selected':'')+'>'+p[0]+'</option>').join('')+'</select></label> <span id="cgCust" '+(inPre()?'hidden':'')+'><input type="number" id="cgCm" min="0" max="60" value="'+Math.floor(g.secs/60)+'" style="width:4em"> min <input type="number" id="cgCs" min="0" max="59" value="'+(g.secs%60)+'" style="width:4em"> sec</span> <label>Turns each: <select id="cgTotal">'+[2,3,5,8].map(s=>'<option value="'+(s*2)+'"'+(g.total===s*2?' selected':'')+'>'+s+'</option>').join('')+'</select></label></div>'+
+  '<div class="row"><button class="btn big" id="cgGo">Start game</button></div>'+
+  '<details><summary><b>How to play</b></summary><ol><li>Leader picks the first team. That team sends one player to hold the device. Everyone else on the team sits facing away from the screen.</li><li>The sender presses <b>Start my turn</b>. A word appears with the tree below it.</li><li>The sender climbs the tree with <b>DOT</b> (left) and <b>DASH</b> (right) until they land on the next letter, then presses <b>Send letter</b>. The device plays the sound. If it is the wrong letter, it will not play.</li><li>Choose a timer in setup, including no timer or a custom time. The leader can pause the timer.</li><li>The team listens, writes the dots and dashes, and calls out guesses. The leader presses <b>Team guessed it</b> when they are right.</li><li>A correct guess earns 2 points, or 1 point if more than half the time was used (with no timer it is always 2). If time runs out, or the leader presses Time is up, the other team can steal 1 point by guessing.</li><li>Teams alternate. Highest score wins. Different players should take turns as sender.</li></ol></details>';
+  $('#cgSecs').onchange=()=>{$('#cgCust').hidden=$('#cgSecs').value!=='-1'};
+  $('#cgGo').onclick=()=>{g.teams[0].n=$('#cgN0').value.trim()||'Team A';g.teams[1].n=$('#cgN1').value.trim()||'Team B';g.set=$('#cgSet').value;{let v=+$('#cgSecs').value;if(v===-1){v=Math.max(10,Math.min(3600,(+$('#cgCm').value||0)*60+(+$('#cgCs').value||0)))}g.secs=v}g.total=+$('#cgTotal').value;g.teams[0].s=g.teams[1].s=0;g.turn=0;g.phase='ready';render()};
+}
+function ready(){
+  stopTimer();
+  root.innerHTML=score()+'<div class="cgpass"><h3>Turn '+(g.turn+1)+' of '+g.total+'</h3><p>Pass the device to a player from <b>'+E(team().n)+'</b>.</p><p>Hold the screen so your team cannot see it. Everyone else on your team turns around or looks away.</p><button class="btn big" id="cgStart">Start my turn</button></div>';
+  $('#cgStart').onclick=()=>{g.skips=2;newWord();g.t=g.secs;g.paused=false;g.phase='play';g.hide=false;render();startTimer()};
+}
+function newWord(){g.cur=item(g.set);g.seq=[...g.cur.send.replace(/ /g,'')].filter(c=>MORSE[c]);g.pos=0;g.path='';g.done=false}
+function startTimer(){stopTimer();if(!g.secs)return;g.iv=setInterval(()=>{if(g.paused)return;g.t--;const el=$('#cgT');if(el)el.textContent=fmt(g.t);if(g.t<=0){stopTimer();g.phase='timeup';render()}},1000)}
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+function wordHtml(){
+  if(g.hide)return '<span class="cgw hid">Word hidden. Tap Show word.</span>';
+  let k=0;
+  const html=g.cur.send.split(' ').map((w,wi)=>{const show=g.cur.show.split(' ')[wi]||w;
+    return '<span class="cgw">'+[...w].map(ch=>{const i=k++;return'<span class="cgl '+(i<g.pos?'sent':i===g.pos?'next':'')+'">'+ch+'</span>'}).join('')+'</span>'}).join(' ');
+  return (g.cur.guide?'<div class="cgshow">'+E(g.cur.show)+'</div>':'')+html;
+}
+function play(){
+  root.innerHTML=score()+'<div class="cgbar"><span>'+E(team().n)+' sending</span><span class="cgtimer">&#9201; '+(g.secs?'<b id="cgT">'+fmt(g.t)+'</b> <button class="btn sm ghost" id="cgPause">'+(g.paused?'Resume':'Pause')+'</button>':'<b>No timer</b>')+'</span><span>Turn '+(g.turn+1)+'/'+g.total+'</span></div>'+
+  '<div class="qbox cgword" id="cgWord">'+wordHtml()+'</div>'+
+  '<div class="row" style="justify-content:center;margin:4px 0"><button class="btn sm ghost" id="cgHide">'+(g.hide?'Show word':'Hide word')+'</button><button class="btn sm ghost" id="cgSkip">Skip word ('+g.skips+' left)</button></div>'+
+  '<div class="treewrap tcwrap"><svg id="cgSvg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Morse tree"></svg></div>'+
+  '<div class="row tcpath"><b>Your path:</b> <span id="cgPath" class="sym"></span> <span id="cgNow"></span></div>'+
+  '<div class="row tcbtns"><button class="btn tcdot" id="cgDot">&#9679; DOT<small>go left</small></button><button class="btn tcdash" id="cgDash">&#9644; DASH<small>go right</small></button></div>'+
+  '<div class="row" style="justify-content:center"><button class="btn ghost" id="cgBack">&#8630; Back one</button><button class="btn alt big" id="cgSend">&#128266; Send letter</button><button class="btn ghost" id="cgClear">Start over</button></div>'+
+  '<div class="fb" id="cgFb"></div>'+
+  '<div class="row cghost"><b>Leader:</b> <button class="btn" id="cgOk">&#10004; Team guessed it</button><button class="btn ghost" id="cgReplay">&#128266; Replay whole message</button><button class="btn ghost" id="cgEnd">'+(g.secs?'End turn now':'Time is up')+'</button></div>';
+  drawTree();wirePlay();showPath();
+}
+const nodes={};
+function drawTree(){
+  const svg=$('#cgSvg');svg.innerHTML='';
+  const el=(n,a,p)=>{const e=document.createElementNS(ns,n);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e};
+  const all=[''].concat(LET.filter(l=>MORSE[l].length<=4).map(l=>MORSE[l]));
+  all.forEach(c=>{if(!c)return;const p=nodePos(c),q=nodePos(c.slice(0,-1));el('line',{x1:q.x,y1:q.y,x2:p.x,y2:p.y,class:'tce','data-e':c})});
+  all.forEach(c=>{const p=nodePos(c),gr=el('g',{class:'tcn','data-c':c,transform:'translate('+p.x+','+p.y+')'});el('circle',{r:c.length===4?15:c===''?10:19},gr);if(c){const t=el('text',{y:6,'text-anchor':'middle',class:'tcl'},gr);t.textContent=REV[c]}nodes[c]=gr});
+}
+function showPath(){
+  const svg=$('#cgSvg');if(!svg)return;
+  svg.querySelectorAll('.tce').forEach(e=>e.classList.toggle('on',g.path.indexOf(e.dataset.e)===0&&e.dataset.e.length<=g.path.length));
+  Object.keys(nodes).forEach(c=>{const n=nodes[c];if(!n||!n.isConnected)return;n.classList.toggle('on',g.path.indexOf(c)===0&&c.length<=g.path.length);n.classList.toggle('cur',c===g.path)});
+  $('#cgPath').innerHTML=g.path?sym(g.path):'';
+  $('#cgNow').textContent=g.path?'You are on: '+REV[g.path]:'You are at the top.';
+  const w=svg.parentNode,p=nodePos(g.path),k=svg.getBoundingClientRect().width/W;w.scrollLeft=Math.max(0,p.x*k-w.clientWidth/2);
+}
+const fb=h=>{const e=$('#cgFb');if(e)e.innerHTML=h};
+function wirePlay(){
+  const step=ch=>{if(g.done)return;const n=g.path+ch;if(!hasNode(n)){fb('<span style="color:var(--bad)">No letter that way.</span>');return}g.path=n;fb('');showPath()};
+  $('#cgDot').onclick=()=>step('.');$('#cgDash').onclick=()=>step('-');
+  $('#cgBack').onclick=()=>{g.path=g.path.slice(0,-1);showPath()};
+  $('#cgClear').onclick=()=>{g.path='';fb('');showPath()};
+  $('#cgSend').onclick=()=>{
+    if(g.done){fb('The whole message is sent. Use Replay whole message if your team needs to hear it again.');return}
+    if(!g.path){fb('Climb the tree to a letter first.');return}
+    const L=REV[g.path],want=g.seq[g.pos];
+    if(L!==want){fb('<span style="color:var(--bad)">You are on <b>'+L+'</b>, but the next letter is <b>'+want+'</b>. Climb again.</span>');return}
+    playCode(g.path);g.pos++;g.path='';
+    if(g.pos>=g.seq.length){g.done=true;fb('<span style="color:var(--ok)">&#10004; Last letter sent. Let your team guess!</span>')}else fb('<span style="color:var(--ok)">Sent '+L+'. Next letter.</span>');
+    $('#cgWord').innerHTML=wordHtml();showPath();
+  };
+  $('#cgHide').onclick=()=>{g.hide=!g.hide;$('#cgWord').innerHTML=wordHtml();$('#cgHide').textContent=g.hide?'Show word':'Hide word'};
+  $('#cgSkip').onclick=()=>{if(g.skips<=0){fb('No skips left.');return}g.skips--;newWord();play();startTimerKeep()};
+  $('#cgReplay').onclick=()=>say(g.cur.send);
+  $('#cgEnd').onclick=()=>{stopTimer();g.phase='timeup';render()};
+  if($('#cgPause'))$('#cgPause').onclick=()=>{g.paused=!g.paused;$('#cgPause').textContent=g.paused?'Resume':'Pause'};
+  $('#cgOk').onclick=()=>{stopTimer();const pts=(!g.secs||g.t>g.secs/2)?2:1;team().s+=pts;g.last='<b>'+E(team().n)+'</b> guessed <b>'+E(g.cur.show)+'</b> and earned '+pts+' point'+(pts>1?'s':'')+'.';next()};
+}
+function startTimerKeep(){startTimer()}
+function timeup(){
+  stopTimer();
+  root.innerHTML=score()+'<div class="cgpass"><h3>&#9201; Time is up</h3><p>The word was <b style="font-size:1.4em">'+E(g.cur.show)+'</b>'+(g.cur.guide?'<br>(sent as '+E(g.cur.guide)+')':'')+'.</p><p>Did <b>'+E(other().n)+'</b> steal it by guessing now?</p><div class="row" style="justify-content:center"><button class="btn" id="cgSteal">'+E(other().n)+' guessed it (+1)</button><button class="btn ghost" id="cgNone">Nobody guessed</button></div></div>';
+  $('#cgSteal').onclick=()=>{other().s+=1;g.last='<b>'+E(other().n)+'</b> stole <b>'+E(g.cur.show)+'</b> for 1 point.';next()};
+  $('#cgNone').onclick=()=>{g.last='Nobody guessed <b>'+E(g.cur.show)+'</b>.';next()};
+}
+function next(){g.turn++;if(g.turn>=g.total){g.phase='end'}else g.phase='ready';render();if(g.last&&g.phase==='ready'){const p=root.querySelector('.cgpass');if(p)p.insertAdjacentHTML('afterbegin','<p class="cglast">'+g.last+'</p>')}}
+function endGame(){
+  stopTimer();const a=g.teams[0],b=g.teams[1];
+  const msg=a.s===b.s?'It is a tie! Play one sudden-death word.':'<b>'+E((a.s>b.s?a:b).n)+'</b> wins!';
+  root.innerHTML=score()+'<div class="cgpass"><h3>Game over</h3>'+(g.last?'<p class="cglast">'+g.last+'</p>':'')+'<p class="big">'+msg+'</p><p>Final score: '+E(a.n)+' '+a.s+', '+E(b.n)+' '+b.s+'.</p><div class="row" style="justify-content:center"><button class="btn big" id="cgAgain">Play again</button></div></div>';
+  $('#cgAgain').onclick=()=>{g.phase='setup';render()};
+}
+bt.addEventListener('click',()=>{if(g.phase==='setup')render()});
+render();
+})();
+
+
+/* ===== DAILY (home practice app) ===== */
+(function(){
+const E=vnEsc,CFG=window.APP_CONFIG||{};
+const KEY='veymApp';
+const load=()=>{try{return Object.assign({name:'',done:[],steps:{},stepsDay:'',missions:0},JSON.parse(store.get(KEY)||'{}'))}catch(e){return{name:'',done:[],steps:{},stepsDay:'',missions:0}}};
+let S=load();const save=()=>store.set(KEY,JSON.stringify(S));
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>ymd(new Date());
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+function streaks(){
+  const set=new Set(S.done);let cur=0;let d=new Date();
+  if(!set.has(ymd(d)))d=addDays(d,-1);
+  while(set.has(ymd(d))){cur++;d=addDays(d,-1)}
+  const all=[...set].sort();let best=0,run=0,prev=null;
+  all.forEach(s=>{const dt=new Date(s+'T00:00:00');run=(prev&&Math.round((dt-prev)/864e5)===1)?run+1:1;prev=dt;if(run>best)best=run});
+  return{cur,best};
+}
+const VERSES=[['PRAY ALWAYS','1 Thessalonians 5:17'],['LOVE ONE ANOTHER','John 13:34'],['I AM THE BREAD OF LIFE','John 6:35'],['STAY WITH US LORD','Luke 24:29'],['SPEAK LORD YOUR SERVANT IS LISTENING','1 Samuel 3:9-10'],['PEACE BE WITH YOU','John 20:19'],['DO THIS IN MEMORY OF ME','Luke 22:19'],['THE LORD IS MY SHEPHERD','Psalm 23:1'],['I AM WITH YOU ALWAYS','Matthew 28:20'],['BE STILL AND KNOW THAT I AM GOD','Psalm 46'],['GO AND MAKE DISCIPLES','Matthew 28:19'],['FEED MY SHEEP','John 21:17'],['REJOICE ALWAYS','1 Thessalonians 5:16'],['COME TO ME ALL WHO LABOR','Matthew 11:28']];
+const REFL=['When did you really listen to someone this week? What did you hear?','Where could you serve someone today with a small, quiet action?','What helps you be still and quiet for a minute with God?','Who in your chapter could use encouragement today?','What does it mean to you that Jesus is truly present in the Eucharist?','How can a skill you are good at help someone else?','What is one thing you want to thank God for today?'];
+const dayNum=()=>{const n=new Date();return Math.floor((Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())-Date.UTC(n.getFullYear(),0,0))/864e5)};
+const BADGES=[['Samuel','Speak, Lord. Complete your first mission.',s=>S.missions>=1,'1 Samuel 3'],['Five Loaves','Complete 5 missions.',s=>S.missions>=5,'John 6:9'],['Emmaus','Keep a 7-day streak.',s=>s.best>=7,'Luke 24'],['Twelve','Complete 12 missions.',s=>S.missions>=12,'Mark 3:14'],['Pentecost','Complete 50 missions.',s=>S.missions>=50,'Acts 2']];
+const STEPS=[
+ ['pray','Pray','Lord, open my ears to listen and my hands to serve. Amen. Then tap today\'s verse above to hear it.'],
+ ['warm','Warm up','Do one round of <b>Tree Climb</b> (10 questions).','practice','tree'],
+ ['train','Train','Do one round in the <b>Speed Trainer</b>. Aim for 90% correct.','practice','speed'],
+ ['reflect','Reflect','']
+];
+const sec=document.createElement('section');sec.className='panel active';sec.id='daily';
+document.getElementById('today').classList.remove('active');
+document.getElementById('today').parentNode.insertBefore(sec,document.getElementById('today'));
+function render(){
+  const st=streaks(),t=today();
+  if(S.stepsDay!==t){S.steps={};S.stepsDay=t;save()}
+  const v=VERSES[dayNum()%VERSES.length],r=REFL[dayNum()%REFL.length],doneToday=S.done.includes(t);
+  const dots=[...Array(14)].map((_,i)=>{const d=ymd(addDays(new Date(),i-13));return'<span class="dd'+(S.done.includes(d)?' on':'')+(d===t?' td':'')+'" title="'+d+'"></span>'}).join('');
+  const total=STEPS.length,n=STEPS.filter(x=>S.steps[x[0]]).length;
+  const logo=document.querySelector('.brandlogo');
+  sec.innerHTML=
+  (logo?'<div style="text-align:center"><img src="'+logo.src+'" alt="" style="width:96px;height:96px;border-radius:50%;background:#fff;border:2px solid var(--gold);padding:3px;box-sizing:border-box"></div>':'')+
+  '<h2'+(logo?' style="text-align:center"':'')+'>'+(S.name?'Welcome back, '+E(S.name)+'.':'Welcome.')+'</h2>'+
+  '<p style="color:var(--muted)'+(logo?';text-align:center':'')+'">'+E(CFG.chapterName||'Thiếu Nhi Thánh Thể')+(CFG.motto?' &middot; <i>'+E(CFG.motto)+'</i>':'')+'</p>'+
+  (S.name?'':'<div class="row"><input type="text" id="dName" placeholder="Your first name (stays on your phone)" maxlength="24" style="flex:1;min-width:200px"><button class="btn sm" id="dNameSave">Save</button></div>')+
+  (CFG.weeklyGoal?'<div class="card"><b>This week\'s goal from your leaders:</b><br>'+E(CFG.weeklyGoal)+'</div>':'')+
+  '<div class="card dcard"><div class="dstreak"><span class="dnum">'+st.cur+'</span><span>day streak<br><small>Best: '+st.best+' &middot; Missions: '+S.missions+'</small></span></div><div class="ddots">'+dots+'</div></div>'+
+  '<div class="card"><h3>Verse of the day</h3><p class="dverse" id="dVerseTxt" hidden><b>'+E(v[0])+'</b> ('+E(v[1])+')</p><div id="dVerseM" style="margin:.4em 0">'+[...v[0].split(' ')].map(w=>'<span style="display:inline-block;margin:4px 10px">'+[...w].map(c=>'<span style="display:inline-block;margin:0 4px 4px 0">'+sym(MORSE[c])+'</span>').join('')+'</span>').join('<br>')+'</div>'+
+  '<div class="row"><button class="btn alt" id="dPlay">&#128266; Play</button><button class="btn ghost" id="dReveal">Reveal</button></div><p style="color:var(--muted)">Decode it first with the tree. Check the reference against your Bible.</p></div>'+
+  '<div class="card"><h3>Today\'s mission <small style="font-weight:600;color:var(--muted)">('+n+'/'+total+')</small></h3>'+
+  STEPS.map(x=>{const body=x[0]==='reflect'?E(r):x[2];return'<label class="dstep"><input type="checkbox" data-step="'+x[0]+'"'+(S.steps[x[0]]?' checked':'')+'><span><b>'+x[1]+'</b><br>'+body+(x[3]?'<br><button type="button" class="btn sm ghost" data-gosub="'+x[4]+'" data-goto2="'+x[3]+'">Open</button>':'')+'</span></label>'}).join('')+
+  (doneToday?'<p class="dok">&#10004; Mission complete. See you tomorrow. God bless!</p>':'')+'</div>'+
+  '<div class="card"><h3>Badges</h3><div class="dbad">'+BADGES.map(b=>{const got=b[2](st);return'<div class="bd'+(got?' on':'')+'"><b>'+(got?'&#127941; ':'&#128274; ')+b[0]+'</b><br><small>'+b[1]+'</small><br><small style="color:var(--muted)">'+b[3]+'</small></div>'}).join('')+'</div></div>'+
+  '<div class="card" id="dInstall"><h3>Keep it on your phone</h3><p id="dStatus">Checking offline status&hellip;</p><div class="row"><button class="btn hidden" id="dInstBtn">Install app</button><button class="btn ghost hidden" id="dShare">Invite a friend</button></div>'+
+  '<p style="color:var(--muted)"><b>iPhone:</b> tap Share, then <b>Add to Home Screen</b>.<br><b>Android:</b> open the browser menu, then <b>Install app</b> or <b>Add to Home screen</b>.</p></div>'+
+  '<p style="text-align:center"><button class="btn sm ghost" id="dReset">Reset my progress</button></p>';
+  wire(v);status();
+}
+function wire(v){
+  const q=id=>sec.querySelector(id);
+  if(q('#dNameSave'))q('#dNameSave').onclick=()=>{const n=q('#dName').value.trim();if(n){S.name=n;save();render()}};
+  q('#dPlay').onclick=()=>say(v[0]);
+  q('#dReveal').onclick=()=>{q('#dVerseTxt').hidden=false};
+  sec.querySelectorAll('[data-step]').forEach(c=>c.onchange=()=>{
+    S.steps[c.dataset.step]=c.checked;
+    if(STEPS.every(x=>S.steps[x[0]])&&!S.done.includes(today())){S.done.push(today());S.missions++}
+    save();render()});
+  sec.querySelectorAll('[data-goto2]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();showTab(b.dataset.goto2);showSub(b.dataset.gosub)});
+  q('#dReset').onclick=()=>{if(confirm('Erase your streak, badges, and name from this phone?')){S={name:'',done:[],steps:{},stepsDay:'',missions:0};save();render()}};
+  if(navigator.share&&/^https?:/.test(location.protocol)){const b=q('#dShare');b.classList.remove('hidden');b.onclick=()=>navigator.share({title:'VEYM Morse',text:'Learn Morse code with our chapter',url:location.href.split('#')[0]}).catch(()=>{})}
+  if(window.__installEvt){const b=q('#dInstBtn');b.classList.remove('hidden');b.onclick=()=>{window.__installEvt.prompt();window.__installEvt=null;b.classList.add('hidden')}}
+}
+function status(){
+  const el=sec.querySelector('#dStatus');if(!el)return;
+  const ok='serviceWorker' in navigator&&/^https?:/.test(location.protocol);
+  if(!ok){el.textContent='You are using a saved copy. Open the web link once to turn on offline use.';return}
+  navigator.serviceWorker.ready.then(()=>{el.innerHTML='&#10004; Saved for offline use. This works without Wi-Fi or data.'}).catch(()=>{el.textContent='Offline use is not available in this browser.'});
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__installEvt=e;const b=sec.querySelector('#dInstBtn');if(b){b.classList.remove('hidden');b.onclick=()=>{e.prompt();window.__installEvt=null;b.classList.add('hidden')}}});
+render();
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+})();
+
+</script>
+</body>
+</html>
